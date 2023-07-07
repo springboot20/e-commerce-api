@@ -9,7 +9,7 @@ const generateAccessToken = (userId, isAdmin) => {
 const newUser = transactions(async (req, res, session) => {
   const { email, ...rest } = req.body;
   try {
-    const userExist = await model.User.findOne({ email });
+    const userExist = await model.UserModel.findOne({ email });
     if (userExist) throw new Error('User already exists');
 
     const userDocument = new model.UserModel({ ...rest, email });
