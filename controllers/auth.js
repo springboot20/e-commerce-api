@@ -3,7 +3,7 @@ const transactions = require('../middlewares/mongooseTransaction');
 const jwt = require('jsonwebtoken');
 
 const generateAccessToken = (userId, isAdmin) => {
-  return jwt.sign({ userId, isAdmin }, process.env.ACCESS_TOKEN_SECRETE, { expiresIn: '1h' });
+  return jwt.sign({ userId, isAdmin }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
 };
 
 const newUser = transactions(async (req, res, session) => {
@@ -18,11 +18,7 @@ const newUser = transactions(async (req, res, session) => {
     const accessToken = generateAccessToken(userDocument._id, userDocument.isAdmin);
     const { password, ...others } = userDocument._doc;
 
-    res.status(201).json({
-      ...others,
-      id: userDocument._id,
-      accessToken: accessToken,
-    });
+    res.status(201).json(...others, { id: userDocument._id, accessToken: accessToken });
   } catch (error) {
     console.log(error);
   }
