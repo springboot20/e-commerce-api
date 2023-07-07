@@ -7,7 +7,9 @@ const OrderSchema = new Schema(
     products: [
       {
         productId: {
-          type: String,
+          type: Schema.Types.ObjectId,
+          ref: 'Product',
+          required: true,
         },
         quantity: {
           type: Number,
@@ -23,7 +25,7 @@ const OrderSchema = new Schema(
       type: Object,
       required: true,
     },
-    status: { type: String, default: 'pending' },
+    status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
   },
   { timestamps: true }
 );

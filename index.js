@@ -16,7 +16,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-app.use('/api/users', routers.userRouter);
+app.use('/api/users', routers.usersRouter);
+app.use('/api/products', routers.productsRouter);
 
 app.get('/', () => {
   res.send('Welcome Springboot20 E-commerce Api');
