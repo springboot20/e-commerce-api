@@ -19,7 +19,7 @@ app.use(cors());
 app.use('/api/users', routers.usersRouter);
 app.use('/api/products', routers.productsRouter);
 app.use('/api/carts', routers.cartsRouter);
-app.use('/api/orders', routers.ordersRouters);
+app.use('/api/orders', routers.ordersRouter);
 
 app.get('/', () => {
   res.send('Welcome Springboot20 E-commerce Api');
