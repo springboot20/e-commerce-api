@@ -24,7 +24,7 @@ const newUser = transactions(async (req, res, session) => {
   }
 });
 
-const login = transactions(async (req, res, session) => {
+const login = async (req, res, session) => {
   const { email, password } = req.body;
   const userExist = await model.UserModel.findOne({ email });
 
@@ -34,7 +34,7 @@ const login = transactions(async (req, res, session) => {
 
     res.status(201).json({ ...others, id: userExist._id, accessToken: accessToken });
   } else res.status(409).json({ message: 'Invalid email or password' });
-});
+};
 
 module.exports = {
   newUser,
