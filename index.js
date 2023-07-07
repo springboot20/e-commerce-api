@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-const userRouter = require('./routes/user.js');
+const routers = require('./routes/index');
 
 const dataBaseConnection = require('./connection/connection');
 
@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-app.use('api/v1/users', userRouter);
+app.use('/api/users', routers.userRouter);
 
 app.get('/', () => {
   res.send('Welcome Springboot20 E-commerce Api');
