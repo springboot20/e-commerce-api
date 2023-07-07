@@ -14,8 +14,6 @@ const UserSchema = new Schema(
   { timestamps: true }
 );
 
-const UserModel = model('User', UserSchema);
-
 // UserSchema.pre('save', function (next) {
 //   if (!this.isModified('password')) {
 //     next();
@@ -34,8 +32,9 @@ UserSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-UserSchema.methods.comparePassword = async function (enteredPassword) {
+UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+const UserModel = model('User', UserSchema);
 module.exports = UserModel;
