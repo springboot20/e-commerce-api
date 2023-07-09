@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const controllers = require('../controllers/index');
-const { auth, isAdmin } = require('../utils/auth');
+const { authenticateUser, authorizePermission } = require('../middlewares/authenticateUser');
 
-router.get('/', isAdmin, controllers.orderController.getOrders);
-router.get('/:userId', auth, controllers.orderController.getOrder);
-router.get('/income', isAdmin, controllers.orderController.monthlyIncome);
-router.post('/', isAdmin, controllers.orderController.placeOrder);
-router.put('/:id', isAdmin, controllers.orderController.updateOrder);
-router.delete('/:id', isAdmin, controllers.orderController.deleteOrder);
+router.route('/').get(authenticateUser, authorizePermission('admin'), controllers.orderController.getOrders);
+router.get('/:userId', authenticateUser, controllers.orderController.getOrder);
+router.route('/income').get(authenticateUser, authorizePermission('admin'), controllers.orderController.monthlyIncome);
+router.route('/').post(authenticateUser, authorizePermission('admin'), controllers.orderController.placeOrder);
+router.route('/:id').put(authenticateUser, authorizePermission('admin'), controllers.orderController.updateOrder);
+router.route('/:id').delete(authenticateUser, authorizePermission('admin'), controllers.orderController.deleteOrder);
 
 module.exports = router;

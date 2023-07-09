@@ -1,43 +1,36 @@
 const model = require('../models/index');
 const transactions = require('../middlewares/mongooseTransaction');
-const bcrypt = require('bcryptjs');
+const { StatusCodes } = require('http-status-codes');
+const customErrors = require('../errors/customError');
+// const { createTokenUser, cookieResponse } = require('../utils/jwt');
+const checkPermission = require('../utils/checkPermission');
+
+const mongoose = require('mongoose');
 
 async function hashPassword(enteredPassword) {
   const salt = await bcrypt.genSalt(10);
   return await bcrypt.hash(enteredPassword, salt);
 }
 
-const getUser = async (req, res, next) => {
-  const {
-    params: { id },
-  } = req;
-  try {
-    const userDoc = await model.UserModel.findById(id);
-    const { password, ...rest } = userDoc._doc;
-    res.status(201).json({ ...rest });
-  } catch (error) {
-    res.status(500).json(error);
-  }
+const getUsers = async (req, res) => {
+  console.log(req.user);
+  const users = await model.UserModel.find({ role: 'user' }).select('-password');
+  res.status(StatusCodes.OK).json({ users });
 };
 
-const getUsers = async (req, res, next) => {
-  const query = req.query.new;
+const getUser = async (req, res) => {
+  console.log(req.user); // Log req.user to check its value
   try {
-    const usersDoc = query ? await model.UserModel.find().sort('createdAt').limit(5) : await model.UserModel.find();
-    res.status(201).json(usersDoc);
+    let user = await model.UserModel.findOne({ _id: req.params.id }).select('-password');
+
+    if (user && user._id) {
+      checkPermission(req.user, user._id);
+    }
+
+    res.status(StatusCodes.OK).json({ user });
   } catch (error) {
-    res.status(500).json(error);
+    console.log(error);
   }
-};
-
-const usersStats = async (req, res, next) => {
-  const date = new Date();
-  const lastYear = new Date(date.setFullYear(date.getFullYear() - 1));
-  try {
-    const userStats = await model.UserModel.aggregate([{ $match: { createdAt: { $gte: lastYear } } }, { $project: { $month: '$createdAt' } }, { $group: { _id: '$month', total: { $sum: 1 } } }]);
-
-    res.status(201).json(userStats);
-  } catch (error) {}
 };
 
 const updateUser = transactions(async (req, res, session) => {
@@ -74,7 +67,6 @@ const deleteUser = async (req, res, next) => {
 module.exports = {
   getUser,
   getUsers,
-  usersStats,
   updateUser,
   deleteUser,
 };

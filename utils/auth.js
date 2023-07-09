@@ -1,40 +1,41 @@
-const jwt = require('jsonwebtoken');
-
-const verifyToken = (req, res, next) => {
-  const accessToken = req.headers?.authorization.split(' ')[1];
-
-  if (!accessToken) {
-    throw new Error('Unauthorized: access token missing');
-  }
-
-  jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (error, user) => {
-    if (error) return next(new Error('Token is not valid!'));
-    req.user = user;
-
-    console.log(req.user);
-    res.setHeader('Authorization', `Bearer ${accessToken}`);
-    next();
-  });
-};
+const customErrors = require('../errors/customError');
+const { validateToken } = require('../utils/jwt');
 
 const auth = (req, res, next) => {
-  verifyToken(req, res, next, () => {
-    if (req.user.id === req.params.id || req.user.isAdmin) {
-      next();
-    } else {
-      res.status(403).json({ message: 'You are not authorized!' });
-    }
-  });
+  let token;
+  const authHeader = req.headers?.authorization;
+
+  if (authHeader && authHeader.startWith('Bearer')) {
+    token = authHeader.split(' ')[1];
+  } else if (res.cookies.token) {
+    token = req.cookies.token;
+  }
+
+  if (!token) {
+    throw new customErrors.UnAuthenticated('Authentication invalid');
+  }
+
+  try {
+    const payload = validateToken(token);
+
+    req.user = {
+      userId: payload.user.userId,
+      role: payload.user.role,
+    };
+
+    next();
+  } catch (error) {
+    throw new customErrors.UnAuthenticated('Authenticated invalid');
+  }
 };
 
-const isAdmin = (req, res, next) => {
-  verifyToken(req, res, next, () => {
-    if (req.user.isAdmin) {
-      next();
-    } else {
-      res.status(403).json({ message: 'You are not authorized!' });
+const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      throw new customErrors.UnAuthorized('Unauthorized to access this route');
     }
-  });
+    next();
+  };
 };
 
-module.exports = { auth, isAdmin };
+module.exports = { auth, authorizeRoles };

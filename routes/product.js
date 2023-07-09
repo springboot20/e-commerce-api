@@ -1,8 +1,8 @@
 const express = require('express');
 const controllers = require('../controllers/index');
 const router = express.Router();
-const { isAdmin } = require('../utils/auth');
+const { authenticateUser, authorizePermission } = require('../middlewares/authenticateUser');
 
-router.post('/', isAdmin, controllers.productController.newProduct);
+router.route('/').post(authenticateUser, authorizePermission('admin'), controllers.productController.newProduct);
 
 module.exports = router;
