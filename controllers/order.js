@@ -32,9 +32,7 @@ const placeOrder = transactions(async (req, res, session) => {
 });
 
 const updateOrder = transactions(async (req, res, session) => {
-  const {
-    params: { id },
-  } = req;
+  const { id } = req.params;
 
   try {
     const updatedOrderDocument = await model.OrderModel.findByIdAndUpdate(id, { $set: req.body }, { new: true });
@@ -47,9 +45,7 @@ const updateOrder = transactions(async (req, res, session) => {
 });
 
 const deleteOrder = async (req, res, next) => {
-  const {
-    params: { id },
-  } = req;
+  const { id } = req.params;
   try {
     await model.OrderModel.findByIdAndDelete(id);
     res.status(201).json({ message: 'Order deleted successfully' });
@@ -64,7 +60,7 @@ const monthlyIncome = async (req, res, next) => {
   const previousMonth = new Date(new Date().setMonth(lastMonth.getMonth() - 1));
   try {
     const orderIncome = await model.OrderModel.aggregate([
-      { $match: { createAt: { $gte: previousMonth } } },
+      { $match: { createdAt: { $gte: previousMonth } } },
       {
         $project: {
           month: { $month: '$createdAt' },

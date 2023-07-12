@@ -27,7 +27,7 @@ const cookiesResponse = ({ res, user, refresh }) => {
     expires: new Date(Date.now() + day),
   });
 
-  res.cookie('accessToken', refreshToken, {
+  res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     signed: true,

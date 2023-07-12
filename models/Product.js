@@ -3,7 +3,7 @@ const { Schema, model } = mongoose;
 
 const ProductSchema = new Schema(
   {
-    userId: {
+    user: {
       type: mongoose.Types.ObjectId,
       ref: 'User',
       required: true,
@@ -45,7 +45,7 @@ const ProductSchema = new Schema(
       default: 'md',
     },
     color: {
-      type: String,
+      type: [String],
       default: ['#222'],
     },
     averageRating: {
@@ -56,9 +56,28 @@ const ProductSchema = new Schema(
       type: Number,
       default: 0,
     },
+    company: {
+      type: String,
+      required: [true, 'Please provide company'],
+      enum: {
+        values: ['ikea', 'liddy', 'marcos'],
+        message: '{VALUE} is not supported',
+      },
+    },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+// ProductSchema.virtual('reviews', {
+//   ref: 'Review',
+//   localField: '_id',
+//   foreignField: 'product',
+//   justOne: false,
+// });
+
+// ProductSchema.pre('remove', async function (next) {
+//   await this.model('Review').deleteMany({ product: this._id });
+// });
 
 const ProductModel = model('Product', ProductSchema);
 

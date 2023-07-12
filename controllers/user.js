@@ -5,8 +5,6 @@ const customErrors = require('../errors/customError');
 // const { createTokenUser, cookieResponse } = require('../utils/jwt');
 const checkPermission = require('../utils/checkPermission');
 
-const mongoose = require('mongoose');
-
 async function hashPassword(enteredPassword) {
   const salt = await bcrypt.genSalt(10);
   return await bcrypt.hash(enteredPassword, salt);

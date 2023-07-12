@@ -9,12 +9,10 @@ const authenticateUser = async (req, res, next) => {
   try {
     if (accessToken) {
       const payload = validateToken(accessToken);
-      console.log(payload);
       req.user = payload.user;
       return next();
     }
     const payload = validateToken(refreshToken);
-    console.log(payload);
 
     const existingToken = await model.TokenModel.findOne({
       user: payload.user.userId,
