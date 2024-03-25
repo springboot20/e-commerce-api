@@ -1,5 +1,5 @@
-const transactions = require('../middlewares/mongooseTransaction');
-const model = require('../models/index');
+const transactions = require('../../middlewares/mongooseTransaction');
+const model = require('../../models/index');
 
 const getOrder = async (req, res, next) => {
   try {
@@ -58,6 +58,7 @@ const monthlyIncome = async (req, res, next) => {
   const date = new Date();
   const lastMonth = new Date(date.setMonth(date.getMonth() - 1));
   const previousMonth = new Date(new Date().setMonth(lastMonth.getMonth() - 1));
+  
   try {
     const orderIncome = await model.OrderModel.aggregate([
       { $match: { createdAt: { $gte: previousMonth } } },

@@ -7,8 +7,7 @@ const connect = async () => {
       user: process.env.USER,
       pass: process.env.PASS,
     });
-
-    console.log(`MongoDB connected successfully: ${conn.connection.host}`);
+  
   } catch (error) {
     console.log(error);
     process.exit(1);

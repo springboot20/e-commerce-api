@@ -1,5 +1,5 @@
-const transactions = require('../middlewares/mongooseTransaction');
-const model = require('../models/index');
+const transactions = require('../../middlewares/mongooseTransaction');
+const model = require('../../models/index');
 
 const getCart = async (req, res, next) => {
   try {

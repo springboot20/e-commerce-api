@@ -1,8 +1,8 @@
-const authController = require('./auth');
-const userController = require('./user');
-const productController = require('./product');
-const cartController = require('./cart');
-const orderController = require('./order');
+const authController = require('./auth/auth.controller');
+const userController = require('./auth/user.controller');
+const productController = require('./ecommerce/product.controller');
+const cartController = require('./ecommerce/cart.controller');
+const orderController = require('./ecommerce/order.controller');
 
 module.exports = {
   authController,

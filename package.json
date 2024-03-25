@@ -11,12 +11,24 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.37.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "express-handlebars": "^7.1.2",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "googleapis": "^133.0.0",
     "http-status-codes": "^2.2.0",
-    "mongoose": "^7.3.1"
+    "mongoose": "^7.3.4",
+    "mongoose-aggregate-paginate-v2": "^1.0.7",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.9",
+    "nodemailer-express-handlebars": "^6.1.2",
+    "passport": "^0.7.0"
   },
   "devDependencies": {
     "cryptojs": "^2.5.3",
