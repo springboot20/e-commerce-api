@@ -1,4 +1,4 @@
-const transactions = require('../../middlewares/mongooseTransaction');
+const { asyncHandler } = require('../../utils/asyncHandler.js');
 const model = require('../../models/index');
 
 const getOrder = async (req, res, next) => {
@@ -20,10 +20,10 @@ const getOrders = async (req, res, next) => {
   }
 };
 
-const placeOrder = transactions(async (req, res, session) => {
+const placeOrder = asyncHandler(async (req, res) => {
   try {
     const orderDoc = await model.OrderModel(req.body);
-    const savedOrder = await orderDoc.save({ session });
+    const savedOrder = await orderDoc.save();
 
     res.status(201).json(savedOrder);
   } catch (error) {
@@ -35,7 +35,11 @@ const updateOrder = transactions(async (req, res, session) => {
   const { id } = req.params;
 
   try {
-    const updatedOrderDocument = await model.OrderModel.findByIdAndUpdate(id, { $set: req.body }, { new: true });
+    const updatedOrderDocument = await model.OrderModel.findByIdAndUpdate(
+      id,
+      { $set: req.body },
+      { new: true }
+    );
     await updatedOrderDocument.save({ session });
 
     res.status(201).json(updatedOrderDocument);
@@ -58,7 +62,7 @@ const monthlyIncome = async (req, res, next) => {
   const date = new Date();
   const lastMonth = new Date(date.setMonth(date.getMonth() - 1));
   const previousMonth = new Date(new Date().setMonth(lastMonth.getMonth() - 1));
-  
+
   try {
     const orderIncome = await model.OrderModel.aggregate([
       { $match: { createdAt: { $gte: previousMonth } } },
