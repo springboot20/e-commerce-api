@@ -1,7 +1,7 @@
 const { google } = require('googleapis');
 const nodemailer = require('nodemailer');
 const { StatusCodes } = require('http-status-codes');
-const CustomErrors = require('../utils/customErrors.js');
+const { ApiError } = require('../utils/api.error.js');
 const expressHandlebars = require('nodemailer-express-handlebars');
 const path = require('path');
 
@@ -18,7 +18,7 @@ const refreshAccessToken = async (oauth) => {
     oauth.setCredential(tokens);
     return tokens.access_token;
   } catch (error) {
-    throw new CustomErrors.UnAuthorized(
+    throw new ApiError(
       StatusCodes.UNAUTHORIZED,
       `Error ocurred while refreshing access token: ${error}`
     );

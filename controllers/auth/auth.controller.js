@@ -17,7 +17,7 @@ const signUp = asyncHandler(
 
     const existedUser = await model.UserModel.findOne({ $or: [{ email }, { username }] });
     if (existedUser)
-      throw new CustomErrors.BadRequest(StatusCodes.CONFLICT, 'user already exists in database');
+      throw new ApiError(StatusCodes.CONFLICT, 'user already exists in database');
 
     const user = await model.UserModel.create({
       username,
@@ -48,7 +48,7 @@ const signUp = asyncHandler(
       '-password -emailVerificationToken -emailVerificationExpiry -refreshToken'
     );
     if (!createdInUser) {
-      throw new CustomErrors.InternalServerError(
+      throw new ApiError(
         StatusCodes.INTERNAL_SERVER_ERROR,
         'Internal server error'
       );
@@ -71,24 +71,21 @@ const signIn = asyncHandler(
     const user = await model.UserModel.findOne({ $or: [{ email }, { username }] });
 
     if (!email && !password) {
-      throw new CustomErrors.BadRequest(
+      throw new ApiError(
         StatusCodes.BAD_REQUEST,
         'Please provide email and password'
       );
     }
 
     if (!user) {
-      throw new CustomErrors.NotFound(
+      throw new ApiError(
         StatusCodes.UNAUTHORIZED,
         `No user found with this email: ${email} or username: ${username}`
       );
     }
 
     if (!(await user.comparePasswords(password))) {
-      throw new CustomErrors.UnAuthorized(
-        StatusCodes.UNAUTHORIZED,
-        'Invalid password, try again!!!'
-      );
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid password, try again!!!');
     }
 
     const { access_token, refresh_token } = await tokenResponse(user._id);
@@ -100,10 +97,7 @@ const signIn = asyncHandler(
     );
 
     if (!loggedInUser) {
-      throw new CustomErrors.InternalServerError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        'Internal server error'
-      );
+      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Internal server error');
     }
 
     await user.save({ validateBeforeSave: false });
@@ -147,7 +141,7 @@ const verifyEmail = asyncHandler(
     console.log(verificationToken);
 
     if (!verificationToken)
-      throw new CustomErrors.BadRequest(
+      throw new ApiError(
         StatusCodes.BAD_REQUEST,
         'Verification token is not provided'
       );
@@ -165,7 +159,7 @@ const verifyEmail = asyncHandler(
     console.log(user);
 
     if (!user) {
-      throw new CustomErrors.UnAuthorized(489, 'Token is invalid or expired');
+      throw new ApiError(489, 'Token is invalid or expired');
     }
 
     user.emailVerificationToken = undefined;
@@ -189,7 +183,7 @@ const resendEmailVerification = asyncHandler(
     const user = await model.UserModel.findById(req.user._id);
 
     if (!user) {
-      throw new CustomErrors.NotFound(StatusCodes.NOT_FOUND, 'User does not exists', []);
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User does not exists', []);
     }
 
     if (user.isEmailVerified) {
@@ -232,7 +226,7 @@ const forgotPassword = asyncHandler(
     const user = await model.UserModel.findOne({ email });
 
     if (!user) {
-      throw new CustomErrors.NotFound(StatusCodes.NOT_FOUND, 'User does not exists', []);
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User does not exists', []);
     }
 
     const { unHashedToken, hashedToken, tokenExpiry } = user.generateTemporaryTokens();
@@ -264,10 +258,7 @@ const resetPassword = asyncHandler(
     const { newPassword } = req.body;
 
     if (!token) {
-      throw new CustomErrors.BadRequest(
-        StatusCodes.BAD_REQUEST,
-        'Verification token is not provided'
-      );
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Verification token is not provided');
     }
 
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
@@ -281,7 +272,7 @@ const resetPassword = asyncHandler(
     });
 
     if (!user) {
-      throw new CustomErrors.NotFound(StatusCodes.NOT_FOUND, 'User does not exists', []);
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User does not exists', []);
     }
 
     const updatedUser = await model.UserModel.findByIdAndUpdate(
