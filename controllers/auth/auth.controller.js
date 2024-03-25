@@ -7,7 +7,7 @@ const { StatusCodes } = require('http-status-codes');
 const { RoleEnums } = require('../../constants');
 const { sendMail } = require('../../service/email.service');
 
-const signUp = asyncHandler(
+const registerUser = asyncHandler(
   /**
    * @param {import('express').Request} req
    * @param {import('express').Response} res
@@ -16,8 +16,7 @@ const signUp = asyncHandler(
     const { username, email, password, role } = req.body;
 
     const existedUser = await model.UserModel.findOne({ $or: [{ email }, { username }] });
-    if (existedUser)
-      throw new ApiError(StatusCodes.CONFLICT, 'user already exists in database');
+    if (existedUser) throw new ApiError(StatusCodes.CONFLICT, 'user already exists in database');
 
     const user = await model.UserModel.create({
       username,
@@ -48,10 +47,7 @@ const signUp = asyncHandler(
       '-password -emailVerificationToken -emailVerificationExpiry -refreshToken'
     );
     if (!createdInUser) {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        'Internal server error'
-      );
+      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Internal server error');
     }
 
     return new ApiResponse(StatusCodes.OK, 'You have successfully created an account', {
