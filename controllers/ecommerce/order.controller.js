@@ -31,7 +31,7 @@ const placeOrder = asyncHandler(async (req, res) => {
   }
 });
 
-const updateOrder = transactions(async (req, res, session) => {
+const updateOrder = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -40,7 +40,7 @@ const updateOrder = transactions(async (req, res, session) => {
       { $set: req.body },
       { new: true }
     );
-    await updatedOrderDocument.save({ session });
+    await updatedOrderDocument.save();
 
     res.status(201).json(updatedOrderDocument);
   } catch (error) {
