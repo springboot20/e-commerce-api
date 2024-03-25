@@ -29,7 +29,6 @@ const tokenResponse = async (userId) => {
 };
 
 module.exports = {
-  generateToken,
   validateToken,
   tokenResponse,
 };
