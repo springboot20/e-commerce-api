@@ -1,15 +1,16 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const { RoleEnums, AvailableRoles } = require("../../constants");
 
 const { Schema, model } = mongoose;
 
-const UserSchema = new Schema(
+const userSchema = new Schema(
   {
     username: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
     },
     email: {
@@ -29,22 +30,23 @@ const UserSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ['admin', 'user'],
-      default: 'user',
-    },
-    isAdmin: {
-      type: Boolean,
-      default: false,
+      enum: AvailableRoles,
+      default: RoleEnums.USER,
     },
     refresh_token: {
       type: String,
     },
+    isEmailVerified: { type: Boolean, default: false },
+    forgotPasswordToken: { type: String },
+    forgotPasswordTokenExpiry: { type: Date },
+    emailVerificationToken: { type: String },
+    emailVerificationTokenExpiry: { type: Date },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
     next();
   }
 
@@ -52,11 +54,11 @@ UserSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-UserSchema.methods.matchPassword = async function (enteredPassword) {
+userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-UserSchema.methods.generateAccessToken = function () {
+userSchema.methods.generateAccessToken = function () {
   const payload = {
     _id: this._id,
     username: this.username,
@@ -65,16 +67,28 @@ UserSchema.methods.generateAccessToken = function () {
     isAdmin: this.isAdmin,
   };
 
-  return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' });
+  return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1d" });
 };
 
-UserSchema.methods.generateRefreshToken = function () {
+userSchema.methods.generateRefreshToken = function () {
   const payload = {
     _id: this._id,
   };
 
-  return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '30d' });
+  return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "30d" });
 };
 
-const UserModel = model('User', UserSchema);
+userSchema.methods.generateTemporaryTokens = function () {
+  const unHashedToken = crypto.randomBytes(20).toString("hex");
+
+  // Generate salt and hash the token synchronously
+  const salt = bcrypt.genSaltSync(10); // Use synchronous version for hashing
+  const hashedToken = bcrypt.hashSync(unHashedToken, salt);
+
+  const tokenExpiry = Date.now() + 20 * 60 * 1000; // 20 minutes from now
+
+  return { unHashedToken, hashedToken, tokenExpiry };
+};
+
+const UserModel = model("User", userSchema);
 module.exports = UserModel;

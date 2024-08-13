@@ -1,13 +1,13 @@
-const model = require('../../models/index');
-const { asyncHandler } = require('../../utils/asyncHandler');
-const { ApiError } = require('../../utils/api.error');
-const { ApiResponse } = require('../../utils/api.response');
-const { tokenResponse } = require('../../utils/jwt');
-const { StatusCodes } = require('http-status-codes');
-const { RoleEnums } = require('../../constants');
-const { sendMail } = require('../../service/email.service');
+const model = require("../../models/index");
+const { asyncHandler } = require("../../utils/asyncHandler");
+const { ApiError } = require("../../utils/api.error");
+const { ApiResponse } = require("../../utils/api.response");
+const { tokenResponse } = require("../../utils/jwt");
+const { StatusCodes } = require("http-status-codes");
+const { RoleEnums } = require("../../constants");
+const { sendMail } = require("../../service/email.service");
 
-const registerUser = asyncHandler(
+const register = asyncHandler(
   /**
    * @param {import('express').Request} req
    * @param {import('express').Response} res
@@ -16,7 +16,7 @@ const registerUser = asyncHandler(
     const { username, email, password, role } = req.body;
 
     const existedUser = await model.UserModel.findOne({ $or: [{ email }, { username }] });
-    if (existedUser) throw new ApiError(StatusCodes.CONFLICT, 'user already exists in database');
+    if (existedUser) throw new ApiError(StatusCodes.CONFLICT, "user already exists in database");
 
     const user = await model.UserModel.create({
       username,
@@ -24,39 +24,26 @@ const registerUser = asyncHandler(
       password,
       role: role ?? RoleEnums.USER,
     });
-
-    const { unHashedToken, hashedToken, tokenExpiry } = user.generateTemporaryTokens();
-
     user.emailVerificationToken = hashedToken;
     user.emailVerificationExpiry = tokenExpiry;
 
     await user.save({ validateBeforeSave: false });
 
-    const verifyLink = `${req.protocol}://${req.get('host')}/api/v1/users/verify-email/${
-      user._id
-    }/${unHashedToken}`;
-
-    await sendMail(
-      user?.email,
-      'Email verification',
-      { username: user?.username, verificationLink: verifyLink },
-      'email-verification'
+    const createdUser = await model.UserModel.findById(user._id).select(
+      "-password -emailVerificationToken -emailVerificationExpiry -refreshToken",
     );
 
-    const createdInUser = await model.UserModel.findById(user._id).select(
-      '-password -emailVerificationToken -emailVerificationExpiry -refreshToken'
-    );
-    if (!createdInUser) {
-      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Internal server error');
+    if (!createdUser) {
+      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
     }
 
-    return new ApiResponse(StatusCodes.OK, 'You have successfully created an account', {
-      user: createdInUser,
+    return new ApiResponse(StatusCodes.OK, "You have successfully created an account", {
+      user: createdUser,
     });
-  }
+  },
 );
 
-const signIn = asyncHandler(
+const login = asyncHandler(
   /**
    * @param {import("express").Request} req
    * @param {import("express").Response} res
@@ -67,21 +54,18 @@ const signIn = asyncHandler(
     const user = await model.UserModel.findOne({ $or: [{ email }, { username }] });
 
     if (!email && !password) {
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        'Please provide email and password'
-      );
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Please provide email and password");
     }
 
     if (!user) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
-        `No user found with this email: ${email} or username: ${username}`
+        `No user found with this email: ${email} or username: ${username}`,
       );
     }
 
     if (!(await user.comparePasswords(password))) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid password, try again!!!');
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid password, try again!!!");
     }
 
     const { access_token, refresh_token } = await tokenResponse(user._id);
@@ -89,20 +73,29 @@ const signIn = asyncHandler(
     user.refresh_token = refresh_token;
 
     const loggedInUser = await model.UserModel.findById(user._id).select(
-      '-password -emailVerificationToken -emailVerificationExpiry -forgotPasswordExpiry -forgotPasswordToken'
+      "-password -emailVerificationToken -emailVerificationExpiry -forgotPasswordExpiry -forgotPasswordToken",
     );
 
     if (!loggedInUser) {
-      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Internal server error');
+      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
     }
 
     await user.save({ validateBeforeSave: false });
 
-    return new ApiResponse(StatusCodes.OK, 'user logged successfully', {
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    };
+
+    res
+      .cookie("access_token", access_token, options)
+      .cookie("refresh_token", refresh_token, options);
+
+    return new ApiResponse(StatusCodes.OK, "user logged successfully", {
       user: loggedInUser,
       tokens: { access_token, refresh_token },
     });
-  }
+  },
 );
 
 const logOut = asyncHandler(
@@ -119,131 +112,13 @@ const logOut = asyncHandler(
           refreshToken: undefined,
         },
       },
-      { new: true }
+      { new: true },
     );
-    return new ApiResponse(StatusCodes.OK, 'user logged out');
-  }
+    return new ApiResponse(StatusCodes.OK, "user logged out");
+  },
 );
 
-const verifyEmail = asyncHandler(
-  /**
-   * @param {import("express").Request} req
-   * @param {import("express").Response} res
-   */
-
-  async (req, res) => {
-    const { verificationToken, userId } = req.params;
-
-    console.log(verificationToken);
-
-    if (!verificationToken)
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        'Verification token is not provided'
-      );
-
-    const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
-
-    console.log(hashedToken);
-
-    const user = await model.UserModel.findOne({
-      _id: new mongoose.Types.ObjectId(userId),
-      emailVerificationToken: hashedToken,
-      emailVerificationExpiry: { $gt: Date.now() },
-    });
-
-    console.log(user);
-
-    if (!user) {
-      throw new ApiError(489, 'Token is invalid or expired');
-    }
-
-    user.emailVerificationToken = undefined;
-    user.emailVerificationExpiry = undefined;
-
-    user.isEmailVerified = true;
-
-    await user.save({ validateBeforeSave: false });
-
-    return new ApiResponse(StatusCodes.OK, 'Email verified', { isEmailVerified: true });
-  }
-);
-
-const resendEmailVerification = asyncHandler(
-  /**
-   * @param {import("express").Request} req
-   * @param {import("express").Response} res
-   */
-
-  async (req, res) => {
-    const user = await model.UserModel.findById(req.user._id);
-
-    if (!user) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'User does not exists', []);
-    }
-
-    if (user.isEmailVerified) {
-      throw new CustomErrors.Conflict(
-        StatusCodes.CONFLICT,
-        'User email has already been verified',
-        []
-      );
-    }
-
-    const { unHashedToken, hashedToken, tokenExpiry } = user.generateTemporaryTokens();
-
-    user.emailVerificationToken = hashedToken;
-    user.emailVerificationExpiry = tokenExpiry;
-
-    const verifyLink = `${req.protocol}://${req.get('host')}/api/v1/verify-email/${unHashedToken}`;
-
-    await sendMail(
-      user?.email,
-      'Email verification',
-      { username: user?.username, verificationLink: verifyLink },
-      'email-verification'
-    );
-
-    await user.save({ validateBeforeSave: false });
-
-    return new ApiResponse(StatusCodes.OK, 'Email verification resend');
-  }
-);
-
-const forgotPassword = asyncHandler(
-  /**
-   * @param {import("express").Request} req
-   * @param {import("express").Response} res
-   */
-
-  async (req, res) => {
-    const { email } = req.body;
-
-    const user = await model.UserModel.findOne({ email });
-
-    if (!user) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'User does not exists', []);
-    }
-
-    const { unHashedToken, hashedToken, tokenExpiry } = user.generateTemporaryTokens();
-
-    user.forgotPasswordToken = hashedToken;
-    user.forgotPasswordExpiry = tokenExpiry;
-
-    const resetLink = `${req.protocol}://${req.get('host')}/api/v1/reset-password/${unHashedToken}`;
-
-    await sendMail(
-      user.email,
-      'Password reset',
-      { resetLink, username: user.username },
-      'reset-password'
-    );
-
-    return new ApiResponse(StatusCodes.OK, 'Password reset link sent successfully');
-  }
-);
-
-const resetPassword = asyncHandler(
+const resetForgottenPassword = asyncHandler(
   /**
    * @param {import("express").Request} req
    * @param {import("express").Response} res
@@ -254,10 +129,10 @@ const resetPassword = asyncHandler(
     const { newPassword } = req.body;
 
     if (!token) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Verification token is not provided');
+      throw new ApiError(StatusCodes.BAD_REQUEST, "verification token is not provided");
     }
 
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     const user = await model.UserModel.findOne({
       _id: req.user._id,
@@ -268,7 +143,7 @@ const resetPassword = asyncHandler(
     });
 
     if (!user) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'User does not exists', []);
+      throw new ApiError(StatusCodes.NOT_FOUND, "user does not exists", []);
     }
 
     const updatedUser = await model.UserModel.findByIdAndUpdate(
@@ -280,13 +155,13 @@ const resetPassword = asyncHandler(
           forgotPasswordExpiry: undefined,
         },
       },
-      { new: true }
+      { new: true },
     );
 
-    return new ApiResponse(StatusCodes.OK, 'Password reset link sent successfully', {
+    return new ApiResponse(StatusCodes.OK, "forgotten password reset successfully", {
       user: updatedUser,
     });
-  }
+  },
 );
 
 const assignRole = asyncHandler(async (req, res) => {
@@ -296,21 +171,18 @@ const assignRole = asyncHandler(async (req, res) => {
   const user = await model.UserModel.findById(new mongoose.Types.Objectid(userId));
 
   if (!user) {
-    throw new ApiError(404, 'User does not exist');
+    throw new ApiError(404, "User does not exist");
   }
   user.role = role;
   await user.save({ validateBeforeSave: false });
 
-  return res.status(200).json(new ApiResponse(200, {}, 'Role changed for the user'));
+  return res.status(200).json(new ApiResponse(200, {}, "Role changed for the user"));
 });
 
 module.exports = {
-  registerUser,
-  signIn,
+  register,
+  login,
   logOut,
-  verifyEmail,
-  resendEmailVerification,
-  resetPassword,
-  forgotPassword,
+  resetForgottenPassword,
   assignRole,
 };
