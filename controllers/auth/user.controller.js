@@ -7,6 +7,8 @@ const { getFileLocalPath, getFileStaticPath } = require("../../helpers");
 
 const getUsers = asyncHandler(async (req, res) => {
   const users = await model.UserModel.find({});
+  console.log(users);
+
   return new ApiResponse(StatusCodes.OK, "users fetched successfully", { users });
 });
 
@@ -27,14 +29,15 @@ const getVerifiedUsers = asyncHandler(async (req, res) => {
     },
   ]);
 
-  return new ApiError(StatusCodes.OK, "verified user fetched succefully", { verifiedUsers });
+  return new ApiResponse(StatusCodes.OK, "verified user fetched succefully", { verifiedUsers });
 });
 
-const getCurrentUser = async (req, res) => {
+const getCurrentUser = asyncHandler(async (req, res) => {
+  console.log(req.user);
   return new ApiResponse(StatusCodes.OK, "current user fetched", {
     user: req.user,
   });
-};
+});
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
   if (!req.file?.filename) {

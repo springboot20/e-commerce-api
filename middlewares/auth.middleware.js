@@ -18,6 +18,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
       throw new CustomErrors.UnAuthenticated(StatusCodes.UNAUTHORIZED, "Invalid token provided");
 
     req.user = user;
+    next()
   } catch (error) {
     next(error);
     throw new ApiError(StatusCodes.UNAUTHORIZED, "Authentication Invalid");

@@ -88,6 +88,8 @@ const login = asyncHandler(
       .cookie("access_token", access_token, options)
       .cookie("refresh_token", refresh_token, options);
 
+    console.log(req.user);
+    
     return new ApiResponse(StatusCodes.OK, "user logged successfully", {
       user: loggedInUser,
       tokens: { access_token, refresh_token },
