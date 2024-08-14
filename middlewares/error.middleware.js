@@ -22,7 +22,7 @@ const errorMiddleware = (err, req, res, next) => {
     ...(process.env.NODE_ENV === "production" ? { stack: error.stack } : {}),
   };
 
-  return res.status(error.status).json(errorResponse);
+  return res.status(error.statusCode).json(errorResponse);
 };
 
 module.exports = { errorMiddleware };

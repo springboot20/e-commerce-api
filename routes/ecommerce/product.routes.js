@@ -1,10 +1,14 @@
-const express = require('express');
-const controllers = require('../../controllers/index');
+const express = require("express");
+const controllers = require("../../controllers/index");
 const router = express.Router();
-const { authenticateUser, authorizePermission } = require('../../middlewares/auth.middleware');
+const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middleware");
+const { RoleEnums } = require("../../constants");
 
 router
-  .route('/')
-  .post([authenticateUser, authorizePermission('admin')], controllers.productController.newProduct);
+  .route("/")
+  .post(
+    [verifyJWT, checkPermissions([RoleEnums.ADMIN])],
+    controllers.productController.createNewProduct,
+  );
 
 module.exports = router;

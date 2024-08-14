@@ -54,7 +54,7 @@ userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-userSchema.methods.matchPassword = async function (enteredPassword) {
+userSchema.methods.matchPasswords = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
@@ -67,7 +67,9 @@ userSchema.methods.generateAccessToken = function () {
     isAdmin: this.isAdmin,
   };
 
-  return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1d" });
+  return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
+  });
 };
 
 userSchema.methods.generateRefreshToken = function () {
@@ -75,7 +77,9 @@ userSchema.methods.generateRefreshToken = function () {
     _id: this._id,
   };
 
-  return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "30d" });
+  return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
+  });
 };
 
 userSchema.methods.generateTemporaryTokens = function () {

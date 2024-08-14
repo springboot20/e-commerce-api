@@ -1,20 +1,42 @@
-const fs = require('fs');
-const { ApiError } = require('./utils/api.error');
-const { ApiResponse } = require('./utils/api.response');
-const { StatusCodes } = require('http-status-codes');
+const fs = require("fs");
+const { ApiError } = require("./utils/api.error");
+const { ApiResponse } = require("./utils/api.response");
+const { StatusCodes } = require("http-status-codes");
+const { default: mongoose } = require("mongoose");
 
 const getFileLocalPath = (filename) => `${__dirname}/uploads/${filename}`;
-const getFileStaticPath = (req, filename) => `${req.protocol}//:${reg.get('host')}/${filename}`;
+const getFileStaticPath = (req, filename) => `${req.protocol}//:${reg.get("host")}/${filename}`;
 
 const removeFileOnError = (filePath) => {
   fs.unlink(filePath, () => {
     if (error)
       throw new ApiError(
         StatusCodes.INTERNAL_SERVER_ERROR,
-        `Error occur while trying to remove file`
+        `Error occur while trying to remove file`,
       );
     else return new ApiResponse(StatusCodes.OK, `Removed file:${localPath}`);
   });
 };
 
-module.exports = { getFileLocalPath, getFileStaticPath, removeFileOnError };
+/**
+ *
+ * @param {*} limit
+ * @returns {mongoose.PaginateOptions}
+ */
+const getMognogoosePagination = ({ limit = 15, page = 1, customLabels }) => {
+  return {
+    limit: Math.max(limit, 1),
+    page: Math.max(page, 1),
+    customLabels: {
+      pagingCounter: "serial_counter",
+      ...customLabelsF,
+    },
+  };
+};
+
+module.exports = {
+  getFileLocalPath,
+  getFileStaticPath,
+  removeFileOnError,
+  getMognogoosePagination,
+};

@@ -13,14 +13,17 @@ const sendEmailVerification = asyncHandler(
   async (req, res) => {
     const { email } = req.body;
 
-    const user = model.UserModel.findOne({ email });
+    console.log(email);
 
+    const user = await model.UserModel.findOne({ email });
+    console.log(user);
     if (!user) throw new ApiError(StatusCodes.NOT_FOUND, "user does not exits", []);
 
     const { unHashedToken, hashedToken, tokenExpiry } = user.generateTemporaryTokens();
 
     user.emailVerificationToken = hashedToken;
     user.emailVerificationTokenExpiry = tokenExpiry;
+    
     await user.save({ validateBeforeSave: false });
 
     const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${

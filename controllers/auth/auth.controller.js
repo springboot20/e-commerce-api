@@ -5,7 +5,6 @@ const { ApiResponse } = require("../../utils/api.response");
 const { tokenResponse } = require("../../utils/jwt");
 const { StatusCodes } = require("http-status-codes");
 const { RoleEnums } = require("../../constants");
-const { sendMail } = require("../../service/email.service");
 
 const register = asyncHandler(
   /**
@@ -24,8 +23,6 @@ const register = asyncHandler(
       password,
       role: role ?? RoleEnums.USER,
     });
-    user.emailVerificationToken = hashedToken;
-    user.emailVerificationExpiry = tokenExpiry;
 
     await user.save({ validateBeforeSave: false });
 
@@ -64,7 +61,7 @@ const login = asyncHandler(
       );
     }
 
-    if (!(await user.comparePasswords(password))) {
+    if (!(await user.matchPasswords(password))) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid password, try again!!!");
     }
 
@@ -168,7 +165,7 @@ const assignRole = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const { role } = req.body;
 
-  const user = await model.UserModel.findById(new mongoose.Types.Objectid(userId));
+  const user = await model.UserModel.findById(userId);
 
   if (!user) {
     throw new ApiError(404, "User does not exist");
@@ -176,7 +173,7 @@ const assignRole = asyncHandler(async (req, res) => {
   user.role = role;
   await user.save({ validateBeforeSave: false });
 
-  return res.status(200).json(new ApiResponse(200, {}, "Role changed for the user"));
+  return new ApiResponse(200, {}, "Role changed for the user");
 });
 
 module.exports = {

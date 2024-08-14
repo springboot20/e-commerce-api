@@ -6,7 +6,7 @@ const { ApiResponse } = require("../../utils/api.response");
 const { getFileLocalPath, getFileStaticPath } = require("../../helpers");
 
 const getUsers = asyncHandler(async (req, res) => {
-  const users = await model.UserModel.find({ role: "user" }).select("-password");
+  const users = await model.UserModel.find({});
   return new ApiResponse(StatusCodes.OK, "users fetched successfully", { users });
 });
 
@@ -31,8 +31,9 @@ const getVerifiedUsers = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = async (req, res) => {
-  const currentUser = await model.UserModel.findById(req.user._id).select("-password");
-  return new ApiResponse(StatusCodes.OK, "current user fetched", { user: currentUser });
+  return new ApiResponse(StatusCodes.OK, "current user fetched", {
+    user: req.user,
+  });
 };
 
 const updateUserAvatar = asyncHandler(async (req, res) => {

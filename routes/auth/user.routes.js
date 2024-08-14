@@ -1,8 +1,9 @@
 const express = require("express");
 const controllers = require("../../controllers/index");
 const router = express.Router();
-const { verifyJWT, authorizePermission } = require("../../middlewares/auth.middleware");
+const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middleware");
 const { upload } = require("../../middlewares/upload.middleware");
+const { RoleEnums } = require("../../constants");
 
 /**
  * PUBLIC ROUTES
@@ -24,29 +25,33 @@ router.route("/reset-password/:token").post(controllers.authController.resetForg
  */
 router
   .route("/")
-  .get([verifyJWT, authorizePermission("admin")], controllers.userController.getUsers)
-  .get([verifyJWT, authorizePermission("admin")], controllers.userController.getVerifiedUsers);
+  .get(verifyJWT, checkPermissions(RoleEnums.ADMIN), controllers.userController.getUsers);
+
+router
+  .route("/verified-users")
+  .get(verifyJWT, checkPermissions(RoleEnums.ADMIN), controllers.userController.getVerifiedUsers);
 
 router
   .route("/:userId")
-  .delete([verifyJWT, authorizePermission("admin")], controllers.userController.deleteUser);
+  .delete(verifyJWT, checkPermissions(RoleEnums.ADMIN), controllers.userController.deleteUser);
+
+router.route("/assign-role/:userId").post(verifyJWT, controllers.authController.assignRole);
 
 /**
  * AUTHENTICATED USER ROUTES
  */
+
 router
   .route("/")
-  .get(verifyJWT, controllers.userController.getCurrentUser)
-  .put(verifyJWT, controllers.userController.updateUser);
+  .patch(verifyJWT, controllers.userController.updateUser)
+  .delete(verifyJWT, controllers.authController.logOut);
 
-router.route("/logout").post(verifyJWT, controllers.authController.logOut);
-
-router
-  .route("/:id")
-  .post(verifyJWT, authorizePermission("admin"), controllers.authController.assignRole);
+router.route("/current-user").get(verifyJWT, controllers.userController.getCurrentUser);
 
 router
-  .route("/avatar")
-  .put(upload.single("avatar"), verifyJWT, controllers.userController.updateUserAvatar);
+  .route("/reset-forgotten-password")
+  .patch(verifyJWT, controllers.authController.resetForgottenPassword);
+
+router.route("/upload-avatar").post(verifyJWT, controllers.userController.updateUserAvatar);
 
 module.exports = router;
