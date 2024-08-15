@@ -35,7 +35,13 @@ router
   .route("/:userId")
   .delete(verifyJWT, checkPermissions(RoleEnums.ADMIN), controllers.userController.deleteUser);
 
-router.route("/assign-role/:userId").post(verifyJWT, controllers.authController.assignRole);
+router
+  .route("/assign-role/:userId")
+  .post(
+    verifyJWT,
+    checkPermissions(RoleEnums.ADMIN, RoleEnums.MODERATOR),
+    controllers.authController.assignRole,
+  );
 
 /**
  * AUTHENTICATED USER ROUTES

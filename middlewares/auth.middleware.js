@@ -38,7 +38,7 @@ const checkPermissions = (roles = []) => {
     }
     if (roles.includes(req.user?.role)) {
       next();
-    } else if (Array.isArray(roles) && !roles.includes(req?.user.role)) {
+    } else if (!roles.includes(req?.user.role)) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "UnAuthenticated to access this route");
     }
   });
