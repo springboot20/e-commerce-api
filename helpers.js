@@ -5,7 +5,7 @@ const { StatusCodes } = require("http-status-codes");
 const { default: mongoose } = require("mongoose");
 
 const getFileLocalPath = (filename) => `${__dirname}/uploads/${filename}`;
-const getFileStaticPath = (req, filename) => `${req.protocol}//:${reg.get("host")}/${filename}`;
+const getFileStaticPath = (req, filename) => `${req.protocol}//:${req.get("host")}/${filename}`;
 
 const removeFileOnError = (filePath) => {
   fs.unlink(filePath, () => {
@@ -29,7 +29,7 @@ const getMognogoosePagination = ({ limit = 15, page = 1, customLabels }) => {
     page: Math.max(page, 1),
     customLabels: {
       pagingCounter: "serial_counter",
-      ...customLabelsF,
+      ...customLabels,
     },
   };
 };

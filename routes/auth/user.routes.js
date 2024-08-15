@@ -58,6 +58,8 @@ router
   .route("/reset-forgotten-password")
   .patch(verifyJWT, controllers.authController.resetForgottenPassword);
 
-router.route("/upload-avatar").post(verifyJWT, controllers.userController.updateUserAvatar);
+router
+  .route("/upload-avatar")
+  .post(verifyJWT, upload.single("avatar"), controllers.userController.updateUserAvatar);
 
 module.exports = router;

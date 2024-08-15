@@ -40,12 +40,14 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
-  if (!req.file?.filename) {
+  if (!req.file) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "No file uploaded", []);
   }
 
   const imageUrl = getFileStaticPath(req, req.file?.filename);
   const imageLocalPath = getFileLocalPath(req.file?.filename);
+
+  console.log(imageUrl, imageLocalPath, req.file);
 
   const userAvatarUpdate = await model.UserModel.findById(
     req.user._id,
