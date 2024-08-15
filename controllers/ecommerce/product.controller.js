@@ -1,22 +1,23 @@
-const model = require('../../models/index');
-const { StatusCodes } = require('http-status-codes');
-const { asyncHandler } = require('../../utils/asyncHandler');
-const { ApiError } = require('../../utils/api.error');
-const { ApiResponse } = require('../../utils/api.response');
-const { getFileStaticPath, getFileLocalPath, removeFileOnError } = require('../../helpers');
-const { MAX_SUB_IMAGES_TO_BE_UPLOAD } = require('../../constants');
+const model = require("../../models/index");
+const { StatusCodes } = require("http-status-codes");
+const { asyncHandler } = require("../../utils/asyncHandler");
+const { ApiError } = require("../../utils/api.error");
+const { ApiResponse } = require("../../utils/api.response");
+const { getFileStaticPath, getFileLocalPath, removeFileOnError } = require("../../helpers");
+const { MAX_SUB_IMAGES_TO_BE_UPLOAD } = require("../../constants");
 
 const createNewProduct = asyncHandler(async (req, res) => {
   const { name, price, description, category, stock } = req.body;
+  const { categoryId } = req.params;
 
-  const productCategory = await model.Category.findOne({ _id: category });
+  const productCategory = await model.CategoryModel.findById(categoryId);
 
   if (!productCategory) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'product category does not exists', []);
+    throw new ApiError(StatusCodes.NOT_FOUND, "product category does not exists", []);
   }
 
   if (!req.files.imageSrc || !req.files.imageSrc.length) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'not images upload', []);
+    throw new ApiError(StatusCodes.BAD_REQUEST, "not images upload", []);
   }
 
   const imageStaticUrl = getFileStaticPath(req, req.files.imageSrc[0]?.filename);
@@ -40,6 +41,7 @@ const createNewProduct = asyncHandler(async (req, res) => {
     name,
     price,
     description,
+    category,
     imageSrc: {
       url: imageStaticUrl,
       localPath: imageLocalPath,
@@ -49,7 +51,7 @@ const createNewProduct = asyncHandler(async (req, res) => {
     stock,
   });
 
-  return new ApiResponse(StatusCodes.CREATED, 'product created successfully', {
+  return new ApiResponse(StatusCodes.CREATED, "product created successfully", {
     product: createdProduct,
   });
 });
@@ -59,20 +61,20 @@ const getProduct = asyncHandler(async (req, res) => {
   const product = await model.ProductModel.findById(id);
 
   if (!product) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'product not found', []);
+    throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
   }
 
-  return new ApiResponse(StatusCodes.OK, 'product fetched successfully', { product });
+  return new ApiResponse(StatusCodes.OK, "product fetched successfully", { product });
 });
 
 const getProductsByCategory = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
 
-  const productCategory = await model.CategoryModel.findById(categoryId).select('name _id');
+  const productCategory = await model.CategoryModel.findById(categoryId).select("name _id");
 
-  if (!productCategory) throw new ApiError(StatusCodes.NOT_FOUND, 'category not found');
+  if (!productCategory) throw new ApiError(StatusCodes.NOT_FOUND, "category not found");
 
-  return new ApiResponse(StatusCodes.OK, 'products category fetched successfully', {
+  return new ApiResponse(StatusCodes.OK, "products category fetched successfully", {
     productCategory,
   });
 });
@@ -83,7 +85,7 @@ const updateProduct = asyncHandler(async (req, res) => {
 
   const product = await model.ProductModel.findById(productId);
 
-  if (!product) throw new ApiError(StatusCodes.NOT_FOUND, 'product not found', []);
+  if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
 
   const imageUrl = getFileStaticPath(req, req.files.imageSrc?.filename);
   const imageLocalPath = getFileLocalPath(req.files.imageSrc?.filename);
@@ -119,7 +121,7 @@ const updateProduct = asyncHandler(async (req, res) => {
 
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      `Sub images to be upload must not greater than ${MAX_SUB_IMAGES_TO_BE_UPLOAD}`
+      `Sub images to be upload must not greater than ${MAX_SUB_IMAGES_TO_BE_UPLOAD}`,
     );
   }
 
@@ -139,10 +141,10 @@ const updateProduct = asyncHandler(async (req, res) => {
         stock,
       },
     },
-    { new: true }
+    { new: true },
   );
 
-  return new ApiResponse(StatusCodes.OK, 'product updated successfully', {
+  return new ApiResponse(StatusCodes.OK, "product updated successfully", {
     product: updatedProduct,
   });
 });
@@ -152,9 +154,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
   const product = await model.ProductModel.findById(productId);
 
-  if (!product) throw new ApiError(StatusCodes.NOT_FOUND, 'product not found', []);
-
-
+  if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
 });
 
 module.exports = {

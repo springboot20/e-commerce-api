@@ -5,7 +5,7 @@ const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middlewa
 const { RoleEnums } = require("../../constants");
 
 router
-  .route("/")
+  .route("/:categoryId")
   .post(
     [verifyJWT, checkPermissions([RoleEnums.ADMIN])],
     controllers.productController.createNewProduct,
