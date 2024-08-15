@@ -49,7 +49,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
   console.log(imageUrl, imageLocalPath, req.file);
 
-  const userAvatarUpdate = await model.UserModel.findById(
+  const userAvatarUpdate = await model.UserModel.findByIdAndUpdate(
     req.user._id,
     {
       $set: {

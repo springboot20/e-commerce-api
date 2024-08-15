@@ -22,7 +22,7 @@ app.use(cookieParser(process.env.JWT_SECRET));
 app.use("/api/v1/users", routers.usersRouter);
 app.use("/api/v1/products", routers.productsRouter);
 app.use("/api/v1/orders", routers.ordersRouter);
-app.use("/api/v1/category", routers.categoryRouter);
+app.use("/api/v1/categories", routers.categoryRouter);
 
 app.use(notFound);
 app.use(errorMiddleware);
