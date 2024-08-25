@@ -1,17 +1,20 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
 
 const ProductSchema = new Schema(
   {
     user: {
       type: mongoose.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     name: {
       type: String,
-      required: [true, 'Please provide product name'],
-      trim: true,
+      required: true,
+    },
+    featured: {
+      type: Boolean,
+      default: false,
     },
     price: {
       type: Number,
@@ -30,7 +33,7 @@ const ProductSchema = new Schema(
     },
     category: {
       type: Schema.Types.ObjectId,
-      ref: 'Category',
+      ref: "Category",
     },
     subImgs: {
       type: [
@@ -46,7 +49,7 @@ const ProductSchema = new Schema(
       default: 0,
     },
   },
-  { timestamps: true, toJSON: { virtual: true }, toObject: { virtual: true } }
+  { timestamps: true },
 );
 
 // ProductSchema.virtual('reviews', {
@@ -60,6 +63,6 @@ const ProductSchema = new Schema(
 //   await this.model('Review').deleteMany({ product: this._id });
 // });
 
-const ProductModel = model('Product', ProductSchema);
+const ProductModel = model("Product", ProductSchema);
 
 module.exports = ProductModel;

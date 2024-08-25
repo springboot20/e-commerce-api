@@ -5,6 +5,7 @@ const { ApiResponse } = require("../../utils/api.response");
 const { tokenResponse } = require("../../utils/jwt");
 const { StatusCodes } = require("http-status-codes");
 const { RoleEnums } = require("../../constants");
+const bcrypt = require("bcrypt");
 
 const register = asyncHandler(
   /**
@@ -89,7 +90,7 @@ const login = asyncHandler(
       .cookie("refresh_token", refresh_token, options);
 
     console.log(req.user);
-    
+
     return new ApiResponse(StatusCodes.OK, "user logged successfully", {
       user: loggedInUser,
       tokens: { access_token, refresh_token },
@@ -131,11 +132,8 @@ const resetForgottenPassword = asyncHandler(
       throw new ApiError(StatusCodes.BAD_REQUEST, "verification token is not provided");
     }
 
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
     const user = await model.UserModel.findOne({
       _id: req.user._id,
-      forgotPasswordToken: hashedToken,
       forgotPasswordExpiry: {
         $gte: Date.now(),
       },
@@ -145,8 +143,13 @@ const resetForgottenPassword = asyncHandler(
       throw new ApiError(StatusCodes.NOT_FOUND, "user does not exists", []);
     }
 
+    const validToken = await bcrypt.compare(token, user.forgotPasswordToken);
+
+    if (!validToken)
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid reset password token provided");
+
     const updatedUser = await model.UserModel.findByIdAndUpdate(
-      req.user._id,
+      user._id,
       {
         $set: {
           password: newPassword,

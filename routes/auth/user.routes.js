@@ -4,13 +4,15 @@ const router = express.Router();
 const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middleware");
 const { upload } = require("../../middlewares/upload.middleware");
 const { RoleEnums } = require("../../constants");
+const { registerValidator, loginValidator } = require("../../validation/auth/user.validation");
+const validate = require("../../validation/validate");
 
 /**
  * PUBLIC ROUTES
  */
-router.route("/register").post(controllers.authController.register);
+router.route("/register").post(registerValidator(), validate, controllers.authController.register);
 
-router.route("/login").post(controllers.authController.login);
+router.route("/login").post(loginValidator(), validate, controllers.authController.login);
 
 router.route("/send-email").post(controllers.emailController.sendEmailVerification);
 
