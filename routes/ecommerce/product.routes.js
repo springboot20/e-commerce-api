@@ -53,7 +53,7 @@ router
   .get(verifyJWT, controllers.productController.getProductsByCategory);
 
 router
-  .route("/remove/subImg/:productId/:categoryId")
+  .route("/remove/subImg/:productId/:subImageId")
   .get(
     verifyJWT,
     checkPermissions([RoleEnums.ADMIN]),

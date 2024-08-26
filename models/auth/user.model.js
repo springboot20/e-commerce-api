@@ -22,6 +22,10 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    isAuthenticated: {
+      type: Boolean,
+      default: false,
+    },
     avatar: {
       type: {
         url: String,

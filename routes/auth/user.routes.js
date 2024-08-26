@@ -52,13 +52,14 @@ router
 router
   .route("/")
   .patch(verifyJWT, controllers.userController.updateUser)
-  .delete(verifyJWT, controllers.authController.logOut);
 
 router.route("/current-user").get(verifyJWT, controllers.userController.getCurrentUser);
 
 router
   .route("/reset-forgotten-password")
   .patch(verifyJWT, controllers.authController.resetForgottenPassword);
+
+router.route("/logout").post(verifyJWT, controllers.authController.logOut);
 
 router
   .route("/upload-avatar")

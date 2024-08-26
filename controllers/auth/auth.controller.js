@@ -69,6 +69,7 @@ const login = asyncHandler(
     const { access_token, refresh_token } = await tokenResponse(user._id);
 
     user.refresh_token = refresh_token;
+    user.isAuthenticated = true;
 
     const loggedInUser = await model.UserModel.findById(user._id).select(
       "-password -emailVerificationToken -emailVerificationExpiry -forgotPasswordExpiry -forgotPasswordToken",
@@ -110,11 +111,12 @@ const logOut = asyncHandler(
       {
         $set: {
           refreshToken: undefined,
+          isAuthenticated: false,
         },
       },
       { new: true },
     );
-    return new ApiResponse(StatusCodes.OK, "user logged out");
+    return new ApiResponse(StatusCodes.OK, "user logged out", {});
   },
 );
 
