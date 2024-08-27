@@ -57,7 +57,7 @@ const getProduct = asyncHandler(async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
   }
 
-  return new ApiResponse(StatusCodes.OK, "product fetched successfully", { product });
+  return new ApiResponse(StatusCodes.OK, "product fetched successfully", product);
 });
 
 const getProductsByCategory = asyncHandler(async (req, res) => {
@@ -90,9 +90,11 @@ const getProductsByCategory = asyncHandler(async (req, res) => {
 
   console.log(paginatedProducts);
 
-  return new ApiResponse(StatusCodes.OK, "products category fetched successfully", {
-    products: paginatedProducts,
-  });
+  return new ApiResponse(
+    StatusCodes.OK,
+    "products category fetched successfully",
+    paginatedProducts,
+  );
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
@@ -193,9 +195,7 @@ const getAllProducts = asyncHandler(
       }),
     );
 
-    return new ApiResponse(StatusCodes.OK, "product deleted successfully", {
-      products: paginatedProducts,
-    });
+    return new ApiResponse(StatusCodes.OK, "product deleted successfully", paginatedProducts);
   },
 );
 
