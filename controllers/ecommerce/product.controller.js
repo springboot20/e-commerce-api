@@ -62,7 +62,7 @@ const getProduct = asyncHandler(async (req, res) => {
 
 const getProductsByCategory = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
-  const { page = 1, limit = 15 } = req.query;
+  const { page = 1, limit = 10 } = req.query;
 
   const productCategory = await model.CategoryModel.findById(categoryId).select("name _id");
 
@@ -161,7 +161,7 @@ const getAllProducts = asyncHandler(
    * @returns
    */
   async (req, res) => {
-    const { page = 1, limit = 15, featured, name } = req.query;
+    const { page = 1, limit = 10, featured, name } = req.query;
 
     const productsAggregate = model.ProductModel.aggregate([
       {
