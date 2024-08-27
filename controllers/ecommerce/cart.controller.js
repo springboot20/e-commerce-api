@@ -61,7 +61,7 @@ const getCart = async (userId) => {
 const getUserCart = asyncHandler(async (req, res) => {
   const userCart = await getCart(req.user._id);
 
-  return new ApiResponse(StatusCodes.OK, "user cart fetched successfully", { userCart });
+  return new ApiResponse(StatusCodes.OK, "user cart fetched successfully", userCart);
 });
 
 const addItemToCart = asyncHandler(async (req, res) => {
