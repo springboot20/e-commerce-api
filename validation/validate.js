@@ -9,12 +9,13 @@ const validate = (req, res, next) => {
     return next();
   } else {
     let extractedErrors = [];
+
     validateResult.array().map((error) => extractedErrors.push({ [error.path]: error.msg }));
 
     throw new ApiError(
       StatusCodes.UNPROCESSABLE_ENTITY,
       "Received data is not valid",
-      extractedError,
+      extractedErrors,
     );
   }
 };

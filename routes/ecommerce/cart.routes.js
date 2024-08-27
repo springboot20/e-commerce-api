@@ -11,7 +11,7 @@ router
 
 router
   .route("/:productId")
-  .get(verifyJWT, controllers.cartController.addItemToCart)
+  .post(verifyJWT, controllers.cartController.addItemToCart)
   .patch(verifyJWT, controllers.cartController.removeItemFromCart);
 
 module.exports = router;

@@ -5,7 +5,7 @@ const { ApiResponse } = require("../../utils/api.response");
 const { tokenResponse } = require("../../utils/jwt");
 const { StatusCodes } = require("http-status-codes");
 const { RoleEnums } = require("../../constants");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 const register = asyncHandler(
   /**
@@ -49,7 +49,7 @@ const login = asyncHandler(
 
   async (req, res) => {
     const { username, email, password } = req.body;
-    const user = await model.UserModel.findOne({ $or: [{ email }, { username }] });
+    const user = await model.UserModel.findOne({ email });
 
     if (!email && !password) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Please provide email and password");
@@ -62,6 +62,8 @@ const login = asyncHandler(
       );
     }
 
+    console.log(user.password);
+
     if (!(await user.matchPasswords(password))) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid password, try again!!!");
     }
@@ -70,6 +72,7 @@ const login = asyncHandler(
 
     user.refresh_token = refresh_token;
     user.isAuthenticated = true;
+    await user.save({ validateBeforeSave: false });
 
     const loggedInUser = await model.UserModel.findById(user._id).select(
       "-password -emailVerificationToken -emailVerificationExpiry -forgotPasswordExpiry -forgotPasswordToken",
@@ -78,8 +81,6 @@ const login = asyncHandler(
     if (!loggedInUser) {
       throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
     }
-
-    await user.save({ validateBeforeSave: false });
 
     const options = {
       httpOnly: true,

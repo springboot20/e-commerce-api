@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { RoleEnums, AvailableRoles } = require("../../constants");
+const CartModel = require("../ecommerce/cart.model");
 
 const { Schema, model } = mongoose;
 
@@ -50,12 +51,16 @@ const userSchema = new Schema(
 );
 
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
-    next();
-  }
+  if (!this.isModified("password")) return next();
+  try {
+    const salt = await bcrypt.genSalt(10); // 10 is a reasonable salt rounds value
 
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+    this.password = await bcrypt.hash(this.password, salt);
+
+    next();
+  } catch (error) {
+    next(error); // Pass error to next middleware
+  }
 });
 
 userSchema.methods.matchPasswords = async function (enteredPassword) {
@@ -97,6 +102,18 @@ userSchema.methods.generateTemporaryTokens = function () {
 
   return { unHashedToken, hashedToken, tokenExpiry };
 };
+
+userSchema.pre("save", async function (next) {
+  const userCart = await CartModel.findOne({ bookedBy: this._id });
+
+  if (!userCart) {
+    await CartModel.create({
+      owner: this._id,
+    });
+  }
+
+  next();
+});
 
 const UserModel = model("User", userSchema);
 module.exports = UserModel;

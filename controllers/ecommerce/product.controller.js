@@ -9,7 +9,7 @@ const {
   removeFileOnError,
   getMognogoosePagination,
 } = require("../../helpers");
-const { MAX_SUB_IMAGES_TO_BE_UPLOAD } = require("../../constants");
+
 const { default: mongoose } = require("mongoose");
 
 const createNewProduct = asyncHandler(async (req, res) => {
@@ -27,23 +27,6 @@ const createNewProduct = asyncHandler(async (req, res) => {
 
   const imageStaticUrl = getFileStaticPath(req, req.files.imageSrc[0]?.filename);
   const imageLocalPath = getFileLocalPath(req.files.imageSrc[0]?.filename);
-
-  /**
-   * @type {{url:string; localPath:string}[]}
-   * @returns {{url: string; localPath: string}}
-   */
-  const productSubImages =
-    req.files.subImgs && req.files.subImgs?.length
-      ? req.file.subImgs.map((image) => {
-          const subImageStaticUrl = getFileStaticPath(req, image.filename);
-          const subImageLocalUrl = getFileLocalPath(image.filename);
-          return {
-            url: subImageStaticUrl,
-            localPath: subImageLocalUrl,
-          };
-        })
-      : [];
-
   const user = req.user._id;
 
   const createdProduct = await model.ProductModel.create({
@@ -58,11 +41,8 @@ const createNewProduct = asyncHandler(async (req, res) => {
       localPath: imageLocalPath,
     },
     category: productCategory,
-    subImgs: productSubImages,
     stock,
   });
-
-  console.log(productSubImages);
 
   return new ApiResponse(StatusCodes.CREATED, "product created successfully", {
     product: createdProduct,
@@ -91,14 +71,12 @@ const getProductsByCategory = asyncHandler(async (req, res) => {
   const productAggregate = model.ProductModel.aggregate([
     {
       $match: {
-        category: {
-          _id: new mongoose.Types.ObjectId(categoryId),
-        },
+        category: new mongoose.Types.ObjectId(categoryId),
       },
     },
   ]);
 
-  const paginatedProducts = model.ProductModel.aggregatePaginate(
+  const paginatedProducts = await model.ProductModel.aggregatePaginate(
     productAggregate,
     getMognogoosePagination({
       limit,
@@ -109,6 +87,8 @@ const getProductsByCategory = asyncHandler(async (req, res) => {
       },
     }),
   );
+
+  console.log(paginatedProducts);
 
   return new ApiResponse(StatusCodes.OK, "products category fetched successfully", {
     products: paginatedProducts,
@@ -133,35 +113,9 @@ const updateProduct = asyncHandler(async (req, res) => {
       }
     : product.imageSrc;
 
-  let productSubImages =
-    req?.files?.subImgs && req?.files?.subImgs.length
-      ? req?.file?.subImgs.map((image) => {
-          const subImageStaticUrl = getFileStaticPath(req, image.filename);
-          const subImageLocalUrl = getFileLocalPath(image.filename);
-
-          return {
-            url: subImageStaticUrl,
-            localPath: subImageLocalUrl,
-          };
-        })
-      : [];
-
-  const totalSubImages = product.subImgs.length + productSubImages.length;
-
-  if (totalSubImages > MAX_SUB_IMAGES_TO_BE_UPLOAD) {
-    productSubImages.map((image) => removeFileOnError(image.url));
-
-    if (updatedProductImageSrc.url !== product.imageSrc.url) {
-      removeFileOnError(product.imageSrc.url);
-    }
-
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      `Sub images to be upload must not greater than ${MAX_SUB_IMAGES_TO_BE_UPLOAD}`,
-    );
+  if (updatedProductImageSrc.url !== product.imageSrc.url) {
+    removeFileOnError(product.imageSrc.url);
   }
-
-  productSubImages = [...productSubImages, ...product.subImgs];
 
   const updatedProduct = await model.ProductModel.findByIdAndUpdate(
     productId,
@@ -174,7 +128,6 @@ const updateProduct = asyncHandler(async (req, res) => {
         featured,
         imageSrc: updatedProductImageSrc,
         category: category,
-        subImgs: productSubImages,
         stock,
       },
     },
@@ -186,38 +139,6 @@ const updateProduct = asyncHandler(async (req, res) => {
   });
 });
 
-const removeImageSubImage = asyncHandler(async (req, res) => {
-  const { productId, subImageId } = req.params;
-
-  const product = await model.ProductModel.findById(productId);
-
-  if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
-
-  const updatedProduct = await model.ProductModel.findByIdAndUpdate(
-    productId,
-    {
-      $pull: {
-        subImgs: {
-          _id: new mongoose.Types.ObjectId(subImageId),
-        },
-      },
-    },
-    { new: true },
-  );
-
-  const removeSubImageFromLocal = product.subImgs.find((image) => {
-    return image._id.toString() === subImageId;
-  });
-
-  if (removeSubImageFromLocal) {
-    removeFileOnError(removeSubImageFromLocal.localPath);
-  }
-
-  return new ApiResponse(StatusCodes.OK, "product sub image deleted successfully", {
-    product: updatedProduct,
-  });
-});
-
 const deleteProduct = asyncHandler(async (req, res) => {
   const { productId } = req.params;
 
@@ -225,9 +146,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
   if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
 
-  const productImages = [product.imageSrc, ...product.subImgs];
-
-  productImages.map((img) => removeFileOnError(img.localPath));
+  removeFileOnError(product.imageSrc.localPath);
 
   return new ApiResponse(StatusCodes.OK, "product deleted successfully", {});
 });
@@ -251,15 +170,14 @@ const getAllProducts = asyncHandler(
           : {},
       },
       {
-        $match:
-          name.length > 0
-            ? {
-                name: {
-                  $regex: name.trim(),
-                  $options: "i",
-                },
-              }
-            : {},
+        $match: name
+          ? {
+              name: {
+                $regex: name.trim(),
+                $options: "i",
+              },
+            }
+          : {},
       },
     ]);
 
@@ -287,6 +205,5 @@ module.exports = {
   getProductsByCategory,
   updateProduct,
   deleteProduct,
-  removeImageSubImage,
   getAllProducts,
 };

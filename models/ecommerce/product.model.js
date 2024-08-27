@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
+const mongooseAggregatePaginate = require("mongoose-aggregate-paginate-v2");
 
 const ProductSchema = new Schema(
   {
@@ -35,15 +36,6 @@ const ProductSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Category",
     },
-    subImgs: {
-      type: [
-        {
-          url: String,
-          localPath: String,
-        },
-      ],
-      default: [],
-    },
     stock: {
       type: Number,
       default: 0,
@@ -62,6 +54,9 @@ const ProductSchema = new Schema(
 // ProductSchema.pre('remove', async function (next) {
 //   await this.model('Review').deleteMany({ product: this._id });
 // });
+
+ProductSchema.plugin(mongooseAggregatePaginate)
+
 
 const ProductModel = model("Product", ProductSchema);
 

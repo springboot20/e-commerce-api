@@ -14,10 +14,6 @@ router
         name: "imageSrc",
         maxCount: 1,
       },
-      {
-        name: "subImgs",
-        maxCount: MAX_SUB_IMAGES_TO_BE_UPLOAD,
-      },
     ]),
     verifyJWT,
     checkPermissions([RoleEnums.ADMIN]),
@@ -52,12 +48,5 @@ router
   .route("/category/:categoryId")
   .get(verifyJWT, controllers.productController.getProductsByCategory);
 
-router
-  .route("/remove/subImg/:productId/:subImageId")
-  .get(
-    verifyJWT,
-    checkPermissions([RoleEnums.ADMIN]),
-    controllers.productController.removeImageSubImage,
-  );
 
 module.exports = router;

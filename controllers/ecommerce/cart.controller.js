@@ -20,12 +20,12 @@ const getCart = async (userId) => {
         localField: "_id",
         from: "products",
         foreignField: "items.productId",
-        as: "cartProduct",
+        as: "product",
       },
     },
     {
       $project: {
-        product: { $first: "$cartProduct" },
+        product: { $first: "$product" },
         quantity: "$items.quantity",
       },
     },
@@ -37,7 +37,7 @@ const getCart = async (userId) => {
         },
         totalCart: {
           $sum: {
-            $multiply: ["items.price", "items.quantity"],
+            $multiply: ["$product.price", "$quantity"],
           },
         },
       },
@@ -72,7 +72,10 @@ const addItemToCart = asyncHandler(async (req, res) => {
     owner: req.user._id,
   });
 
+  console.log(req.user._id)
+
   const product = await model.ProductModel.findById(productId);
+  console.log(product)
 
   if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found");
 
@@ -83,7 +86,9 @@ const addItemToCart = asyncHandler(async (req, res) => {
     );
   }
 
-  const addedProduct = product.find((p) => p._id.toString() === productId);
+  console.log(cart);
+
+  const addedProduct = cart.items?.find((p) => p.productId.toString() === productId);
 
   if (addedProduct) {
     addedProduct.quantity = quantity;
