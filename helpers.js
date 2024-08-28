@@ -5,7 +5,7 @@ const { StatusCodes } = require("http-status-codes");
 const { default: mongoose } = require("mongoose");
 
 const getFileLocalPath = (filename) => `${__dirname}/public/uploads/${filename}`;
-const getFileStaticPath = (req, filename) => `${req.protocol}//:${req.get("host")}/${filename}`;
+const getFileStaticPath = (req, filename) => `${req.protocol}://${req.get("host")}/uploads/${filename}`;
 
 const removeFileOnError = (filePath) => {
   fs.unlink(filePath, (error) => {

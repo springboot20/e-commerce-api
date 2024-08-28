@@ -17,9 +17,9 @@ const getCart = async (userId) => {
     },
     {
       $lookup: {
-        localField: "_id",
         from: "products",
-        foreignField: "items.productId",
+        localField: "items.productId",
+        foreignField: "_id",
         as: "product",
       },
     },
@@ -61,7 +61,7 @@ const getCart = async (userId) => {
 const getUserCart = asyncHandler(async (req, res) => {
   const userCart = await getCart(req.user._id);
 
-  return new ApiResponse(StatusCodes.OK, "user cart fetched successfully", userCart);
+  return new ApiResponse(StatusCodes.OK, "user cart fetched successfully", { cart: userCart });
 });
 
 const addItemToCart = asyncHandler(async (req, res) => {
@@ -72,10 +72,8 @@ const addItemToCart = asyncHandler(async (req, res) => {
     owner: req.user._id,
   });
 
-  console.log(req.user._id)
-
   const product = await model.ProductModel.findById(productId);
-  console.log(product)
+  console.log(product);
 
   if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found");
 
@@ -85,8 +83,6 @@ const addItemToCart = asyncHandler(async (req, res) => {
       `only ${product.stock} is remaining. But you are adding ${quantity}. Product out of stock`,
     );
   }
-
-  console.log(cart);
 
   const addedProduct = cart.items?.find((p) => p.productId.toString() === productId);
 
@@ -129,7 +125,7 @@ const removeItemFromCart = asyncHandler(async (req, res) => {
 
   const userCart = await getCart(req.user._id);
 
-  return new ApiResponse(StatusCodes.OK, "item added to cart", { cart: userCart });
+  return new ApiResponse(StatusCodes.OK, "item removed from cart", { cart: userCart });
 });
 
 const clearCart = asyncHandler(async (req, res, next) => {

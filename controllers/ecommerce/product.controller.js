@@ -57,7 +57,7 @@ const getProduct = asyncHandler(async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
   }
 
-  return new ApiResponse(StatusCodes.OK, "product fetched successfully", product);
+  return new ApiResponse(StatusCodes.OK, "product fetched successfully", { product });
 });
 
 const getProductsByCategory = asyncHandler(async (req, res) => {
@@ -165,11 +165,12 @@ const getAllProducts = asyncHandler(
 
     const productsAggregate = model.ProductModel.aggregate([
       {
-        $match: featured
-          ? {
-              featured: Boolean(featured),
-            }
-          : {},
+        $match:
+          featured !== undefined
+            ? {
+                featured: JSON.parse(featured),
+              }
+            : {},
       },
       {
         $match: name
@@ -195,7 +196,7 @@ const getAllProducts = asyncHandler(
       }),
     );
 
-    return new ApiResponse(StatusCodes.OK, "product deleted successfully", paginatedProducts);
+    return new ApiResponse(StatusCodes.OK, "products fetched successfully", paginatedProducts);
   },
 );
 
