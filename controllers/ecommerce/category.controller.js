@@ -3,7 +3,6 @@ const { asyncHandler } = require("../../utils/asyncHandler");
 const { ApiResponse } = require("../../utils/api.response");
 const { ApiError } = require("../../utils/api.error");
 const { StatusCodes } = require("http-status-codes");
-const { getMognogoosePagination } = require("../../helpers");
 
 const createCategory = asyncHandler(async (req, res) => {
   const { name } = req.body;
@@ -21,21 +20,7 @@ const createCategory = asyncHandler(async (req, res) => {
 });
 
 const getAllCategory = asyncHandler(async (req, res) => {
-  const { limit = 15, page = 1 } = req.query;
-
-  const categoriesAggregate = await model.CategoryModel.aggregate[{ $match: {} }];
-
-  const categories = await model.CategoryModel.aggregatePaginate(
-    categoriesAggregate,
-    getMognogoosePagination({
-      limit,
-      page,
-      customLabels: {
-        totalDocs: "totalCategories",
-        docs: "categories",
-      },
-    }),
-  );
+  const categories = await model.CategoryModel.find({}).select("name _id");
 
   return new ApiResponse(StatusCodes.OK, "catergories fetched successfully", { categories });
 });

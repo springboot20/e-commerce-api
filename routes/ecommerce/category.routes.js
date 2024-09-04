@@ -6,6 +6,7 @@ const router = express.Router();
 
 router
   .route("/")
+  .get(verifyJWT, controllers.categoryController.getAllCategory)
   .post(
     verifyJWT,
     checkPermissions(RoleEnums.ADMIN),
