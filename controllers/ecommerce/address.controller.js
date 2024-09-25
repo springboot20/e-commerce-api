@@ -6,7 +6,17 @@ const { ApiResponse } = require("../../utils/api.response");
 const { getMognogoosePagination } = require("../../helpers");
 
 const createAddress = asyncHandler(async (req, res) => {
-  const { city, country, addressLineOne, addressLineTwo, zipCode, state } = req.body;
+  const {
+    city,
+    country,
+    addressLineOne,
+    addressLineTwo,
+    zipCode,
+    state,
+    phone,
+    firstName,
+    lastName,
+  } = req.body;
   const owner = req.user._id;
 
   const newAddress = await model.AddressModel.create({
@@ -17,6 +27,9 @@ const createAddress = asyncHandler(async (req, res) => {
     addressLineTwo,
     zipCode,
     state,
+    phone,
+    firstName,
+    lastName,
   });
 
   return new ApiResponse(StatusCodes.CREATED, "user address added successfully", {
@@ -63,7 +76,17 @@ const getAddressById = asyncHandler(async (req, res) => {
 
 const updateAddress = asyncHandler(async (req, res) => {
   const { addressId } = req.params;
-  const { city, country, addressLineOne, addressLineTwo, zipCode, state } = req.body;
+  const {
+    city,
+    country,
+    addressLineOne,
+    addressLineTwo,
+    zipCode,
+    state,
+    phone,
+    firstName,
+    lastName,
+  } = req.body;
 
   const address = await model.AddressModel.findOne({
     _id: addressId,
@@ -82,6 +105,9 @@ const updateAddress = asyncHandler(async (req, res) => {
         addressLineTwo,
         zipCode,
         state,
+        phone,
+        firstName,
+        lastName,
       },
     },
     { new: true },

@@ -4,26 +4,18 @@ const controllers = require("../../controllers/index");
 const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middleware");
 const { RoleEnums } = require("../../constants");
 
-router
-  .route("/")
-  .get([verifyJWT, checkPermissions([RoleEnums.ADMIN])], controllers.orderController.getOrders);
-
-router.get("/:userId", verifyJWT, controllers.orderController.getOrder);
+router.route("/provider/paypal").post(verifyJWT, controllers.orderController.generatePaypalOrder);
 
 router
-  .route("/income")
-  .get([verifyJWT, checkPermissions([RoleEnums.ADMIN])], controllers.orderController.monthlyIncome);
+  .route("/provider/paypal/verify-payment")
+  .post(verifyJWT, controllers.orderController.verifyPaypalyOrder);
 
 router
-  .route("/")
-  .post([verifyJWT, checkPermissions([RoleEnums.ADMIN])], controllers.orderController.placeOrder);
-
-router
-  .route("/:id")
-  .put([verifyJWT, checkPermissions([RoleEnums.ADMIN])], controllers.orderController.updateOrder)
-  .delete(
-    [verifyJWT, checkPermissions([RoleEnums.ADMIN])],
-    controllers.orderController.deleteOrder,
+  .route("/status/:orderId")
+  .patch(
+    verifyJWT,
+    checkPermissions([RoleEnums.ADMIN]),
+    controllers.orderController.updateOrderStatus,
   );
 
 module.exports = router;

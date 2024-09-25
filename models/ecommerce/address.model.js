@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
 
 const AddressSchema = new Schema(
@@ -28,11 +28,15 @@ const AddressSchema = new Schema(
     },
     owner: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
+    },
+    phone: {
+      type: String,
+      required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-const AddressModel =model('Address', AddressSchema);
+const AddressModel = model("Address", AddressSchema);
 module.exports = AddressModel;

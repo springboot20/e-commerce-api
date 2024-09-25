@@ -1,31 +1,35 @@
 const OrderStatuses = {
-  PENDING: 'PENDING',
-  COMPLETED: 'COMPLETED',
-  FAILED: 'FAILED',
+  PENDING: "PENDING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+};
+
+const paypalBaseUrl = {
+  sandbox: "https://api-m.sandbox.paypal.com",
 };
 
 const AvailableOrderStatusEnums = Object.values(OrderStatuses);
 
 const PaymentMethods = {
-  UNKNOWN: 'UNKNOWN',
-  BANK: 'BANK',
-  PAYSTACK: 'PAYSTACK',
-  FLUTTERWAVE: 'FLUTTERWAVE',
+  UNKNOWN: "UNKNOWN",
+  BANK: "BANK",
+  PAYPAL: "PAYPAL",
+  FLUTTERWAVE: "FLUTTERWAVE",
 };
 
 const AvailablePaymentMethods = Object.values(PaymentMethods);
 
 const RoleEnums = {
-  USER: 'USER',
-  ADMIN: 'ADMIN',
-  MODERATOR: 'MODERATOR',
+  USER: "USER",
+  ADMIN: "ADMIN",
+  MODERATOR: "MODERATOR",
 };
 
 const AvailableRoles = Object.values(RoleEnums);
 
 const LoginType = {
-  EMAIL_PASSWORD: 'EMAIL_PASSWORD',
-  GOOGLE: 'GOOGLE',
+  EMAIL_PASSWORD: "EMAIL_PASSWORD",
+  GOOGLE: "GOOGLE",
 };
 
 const AvailableLoginType = Object.values(LoginType);
@@ -41,6 +45,6 @@ module.exports = {
   AvailableRoles,
   LoginType,
   AvailableLoginType,
-
   MAX_SUB_IMAGES_TO_BE_UPLOAD,
+  paypalBaseUrl
 };

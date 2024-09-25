@@ -149,4 +149,5 @@ module.exports = {
   addItemToCart,
   removeItemFromCart,
   clearCart,
+  getCart,
 };

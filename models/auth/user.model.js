@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { RoleEnums, AvailableRoles } = require("../../constants");
 const CartModel = require("../ecommerce/cart.model");
+const AddressModel = require("../ecommerce/address.model");
 
 const { Schema, model } = mongoose;
 
@@ -105,9 +106,16 @@ userSchema.methods.generateTemporaryTokens = function () {
 
 userSchema.pre("save", async function (next) {
   const userCart = await CartModel.findOne({ bookedBy: this._id });
+  const userAddress = await AddressModel.findOne({ owner: this._id });
 
   if (!userCart) {
     await CartModel.create({
+      owner: this._id,
+    });
+  }
+
+  if (!userAddress) {
+    await AddressModel.create({
       owner: this._id,
     });
   }
