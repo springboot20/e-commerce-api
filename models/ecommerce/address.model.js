@@ -11,7 +11,7 @@ const AddressSchema = new Schema(
       type: String,
       required: true,
     },
-    address_line_one: {
+    "address_line_one": {
       type: String,
       required: true,
     },

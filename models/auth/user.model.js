@@ -109,11 +109,11 @@ userSchema.pre("save", async function (next) {
   const userCart = await CartModel.findOne({ bookedBy: this._id });
   const userAddress = await AddressModel.findOne({ owner: this._id });
 
-  // if (!userCart) {
-  //   await CartModel.create({
-  //     owner: this._id,
-  //   });
-  // }
+  if (!userCart) {
+    await CartModel.create({
+      owner: this._id,
+    });
+  }
 
   // if (!userAddress) {
   //   await AddressModel.create({

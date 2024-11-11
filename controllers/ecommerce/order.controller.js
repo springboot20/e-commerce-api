@@ -1,5 +1,5 @@
 // const fetch = require("node-fetch");
-const { paypalBaseUrl, PaymentMethods, OrderStatuses } = require('../../constants.js');
+const { PaymentMethods, OrderStatuses } = require('../../constants.js');
 const { ApiError } = require('../../utils/api.error');
 const { StatusCodes } = require('http-status-codes');
 const { asyncHandler } = require('../../utils/asyncHandler');
@@ -8,7 +8,7 @@ const { getCart } = require('./cart.controller');
 const { ApiResponse } = require('../../utils/api.response.js');
 
 const {
-  ApiError,
+  ApiError: PayPalApiError,
   CheckoutPaymentIntent,
   Client,
   Environment,
@@ -17,50 +17,21 @@ const {
   PaymentsController,
 } = require('@paypal/paypal-server-sdk');
 
-const generatePaypalAccessToken = async () => {
-  try {
-    const base64_endoded = Buffer.from(
-      `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_SECRET}`
-    ).toString('base64');
-
-    const response = await fetch(`${paypalBaseUrl.sandbox}/v1/oauth2/token`, {
-      method: 'POST',
-      body: new URLSearchParams({
-        grant_type: 'client_credentials',
-        response_type: 'id_token',
-      }),
-      headers: {
-        Authorization: `Basic ${base64_endoded}`,
-      },
-    });
-
-    const data = await response.json();
-
-    return data?.access_token;
-  } catch (error) {
-    throw new ApiError(
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      'error while generating paypal access token error'
-    );
-  }
-};
-
-/**
- *
- * @param {string} endpoint
- * @param {object} body
- */
-async function paypalApi(endpoint, body = {}) {
-  const accessToken = await generatePaypalAccessToken();
-  return await fetch(`${paypalBaseUrl.sandbox}/v2/checkout/orders${endpoint}`, {
-    method: 'POST', // or GET
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify(body),
-  });
-}
+const client = new Client({
+  clientCredentialsAuthCredentials: {
+    oAuthClientId: process.env.PAYPAL_CLIENT_ID,
+    oAuthClientSecret: process.env.PAYPAL_CLIENT_SECRET,
+  },
+  timeout: 0,
+  environment: Environment.Sandbox,
+  logging: {
+    logLevel: LogLevel.Info,
+    logRequest: { logBody: true },
+    logResponse: { logHeaders: true },
+  },
+});
+const ordersController = new OrdersController(client);
+const paymentsController = new PaymentsController(client);
 
 const generatePaypalOrder = asyncHandler(async (req, res) => {
   const { addressId } = req.body;
@@ -85,37 +56,51 @@ const generatePaypalOrder = asyncHandler(async (req, res) => {
 
   const totalPrice = userCart.totalCart;
 
-  const paypalItems = await paypalApi('/', {
-    intent: 'CAPTURE',
-    purchase_units: [
-      {
-        amount: {
-          currency_code: 'USD',
-          value: (totalPrice / 1645).toFixed(0),
+  const paypalItems = {
+    body: {
+      intent: 'CAPTURE',
+      purchase_units: [
+        {
+          amount: {
+            currency_code: 'USD',
+            value: (totalPrice / 1645).toFixed(0),
+          },
         },
-      },
-    ],
-  });
+      ],
+    },
 
-  const paypalItemsData = await paypalItems.json();
+    prefer: 'return=minimal',
+  };
 
-  if (paypalItemsData?.id) {
-    const order = new OrderModel.create({
-      customer: req.user._id,
-      address: addressId,
-      items: cartItems,
-      orderPrice: totalPrice ?? 0,
-      // discountedOrderPrice: totalPrice,
-      paymentMethod: PaymentMethods.PAYPAL,
-      paymentId: paypalItemsData.id,
-    });
+  try {
+    const { body, ...httpResponse } = await ordersController.ordersCreate(paypalItems);
 
-    if (order) {
-      return ApiResponse(res, StatusCodes.CREATED, 'Paypal order created successfully', order);
+    if (body?.id) {
+      const order = new OrderModel.create({
+        customer: req.user._id,
+        address: addressId,
+        items: cartItems,
+        orderPrice: totalPrice ?? 0,
+        paymentMethod: PaymentMethods.PAYPAL,
+        paymentId: body.id,
+      });
+
+      if (order) {
+        return ApiResponse(
+          res,
+          httpResponse.statusCode,
+          'Paypal order created successfully',
+          order
+        );
+      }
     }
+  } catch (error) {
+    if (error instanceof PayPalApiError) {
+      const { statusCode, message } = error;
+      throw new ApiError(statusCode, message, []);
+    }
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'error while creating paypal order', []);
   }
-
-  throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'error while creating paypal order', []);
 });
 
 async function paypalOrderFulfillmentHelper(orderPaymentId, req) {
@@ -155,15 +140,21 @@ async function paypalOrderFulfillmentHelper(orderPaymentId, req) {
 }
 
 const verifyPaypalyOrder = asyncHandler(async (req, res) => {
-  const { orderId } = req.body;
+  const { orderId } = req.params;
 
-  const response = await paypalApi(`/${orderId}/capture`);
-  const data = await response.json();
+  const captureObj = {
+    id: orderId,
+    prefer: 'return=minimal',
+  };
 
-  if (data?.status === 'COMPLETED') {
-    const order = await paypalOrderFulfillmentHelper(data.id, req);
+  const { body, ...httpStatuscode } = await ordersController.ordersCapture(captureObj);
 
-    return new ApiResponse(StatusCodes.OK, 'order placed successfully', order);
+  const { statusCode } = httpStatuscode;
+
+  if (body?.status === 'COMPLETED') {
+    const order = await paypalOrderFulfillmentHelper(response.id, req);
+
+    return new ApiResponse(statusCode, 'order placed successfully', order);
   } else {
     throw new ApiError(
       StatusCodes.INTERNAL_SERVER_ERROR,
@@ -194,7 +185,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     { new: true }
   );
 
-  return new ApiResponse(StatusCodes.OK, 'order status changed successfully', { status });
+  return new ApiResponse(StatusCodes.OK, 'order status changed successfully', {status} );
 });
 
 module.exports = {

@@ -20,7 +20,7 @@ const createCategory = asyncHandler(async (req, res) => {
 });
 
 const getAllCategory = asyncHandler(async (req, res) => {
-  const categories = await model.CategoryModel.find({}).select("name _id");
+  const categories = await model.CategoryModel.find({}).sgit stelect("name _id");
 
   return new ApiResponse(StatusCodes.OK, "catergories fetched successfully", { categories });
 });
