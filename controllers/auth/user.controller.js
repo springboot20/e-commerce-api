@@ -1,19 +1,38 @@
-const model = require("../../models/index");
-const { asyncHandler } = require("../../utils/asyncHandler");
-const { StatusCodes } = require("http-status-codes");
-const { ApiError } = require("../../utils/api.error");
-const { ApiResponse } = require("../../utils/api.response");
-const { getFileLocalPath, getFileStaticPath } = require("../../helpers");
+const model = require('../../models/index');
+const { asyncHandler } = require('../../utils/asyncHandler');
+const { StatusCodes } = require('http-status-codes');
+const { ApiError } = require('../../utils/api.error');
+const { ApiResponse } = require('../../utils/api.response');
+const { getFileLocalPath, getFileStaticPath, getMognogoosePagination } = require('../../helpers');
 
 const getUsers = asyncHandler(async (req, res) => {
-  const users = await model.UserModel.find({});
-  console.log(users);
+  const { page = 1, limit = 10 } = req.query;
 
-  return new ApiResponse(StatusCodes.OK, "users fetched successfully", { users });
+  const userAggregate = model.UserModel.aggregate([
+    {
+      $match: {},
+    },
+  ]);
+
+  const paginatedUsers = await model.UserModel.aggregatePaginate(
+    userAggregate,
+    getMognogoosePagination({
+      limit,
+      page,
+      customLabels: {
+        totalDocs: 'total_users',
+        docs: 'users',
+      },
+    })
+  );
+
+  return new ApiResponse(StatusCodes.OK, 'users fetched successfully', paginatedUsers);
 });
 
 const getVerifiedUsers = asyncHandler(async (req, res) => {
-  const verifiedUsers = await model.UserModel.aggregate([
+  const { page = 1, limit = 10 } = req.query;
+
+  const verifiedUsersAggregate = model.UserModel.aggregate([
     {
       $match: {
         isEmailVerified: true,
@@ -29,19 +48,42 @@ const getVerifiedUsers = asyncHandler(async (req, res) => {
     },
   ]);
 
-  return new ApiResponse(StatusCodes.OK, "verified user fetched succefully", { verifiedUsers });
+  const paginatedVerifiedUsers = await model.UserModel.aggregatePaginate(
+    verifiedUsersAggregate,
+    getMognogoosePagination({
+      limit,
+      page,
+      customLabels: {
+        totalDocs: 'total_verified_users',
+        docs: 'verified_users',
+      },
+    })
+  );
+
+  return new ApiResponse(
+    StatusCodes.OK,
+    'verified user fetched succefully',
+    paginatedVerifiedUsers
+  );
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  console.log(req.user);
-  return new ApiResponse(StatusCodes.OK, "current user fetched", {
-    user: req.user,
+  const { userId } = req.params;
+
+  const user = await model.UserModel.findById(userId);
+
+  if (!user) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Unable to find user');
+  }
+
+  return new ApiResponse(StatusCodes.OK, 'current user fetched', {
+    user,
   });
 });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
   if (!req.file) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "No file uploaded", []);
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'No file uploaded', []);
   }
 
   const imageUrl = getFileStaticPath(req, req.file?.filename);
@@ -59,19 +101,20 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         },
       },
     },
-    { new: true },
+    { new: true }
   );
 
-  return new ApiResponse(StatusCodes.OK, "users fetched successfully", { user: userAvatarUpdate });
+  return new ApiResponse(StatusCodes.OK, 'users fetched successfully', { user: userAvatarUpdate });
 });
 
 const updateUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
+  const { userId } = req.params;
 
-  const user = await UserModel.findById(req.user._id);
+  const user = await UserModel.findById(userId);
 
   if (!user) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "Unable to find user");
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Unable to find user');
   }
 
   const updatedUser = await model.UserModel.findByIdAndUpdate(
@@ -83,32 +126,22 @@ const updateUser = asyncHandler(async (req, res) => {
         password,
       },
     },
-    { new: true },
+    { new: true }
   );
 
   await updatedUser.save({ validateBeforeSave: false });
 
-  return new ApiResponse(StatusCodes.OK, "User updated successfully", { user: updatedUser });
+  return new ApiResponse(StatusCodes.OK, 'User updated successfully', { user: updatedUser });
 });
 
 const deleteUser = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
 
-  const deletedUser = await model.UserModel.findByIdAndDelete(
-    new mongoose.Types.ObjectId(userId),
-    {
-      $set: {
-        username,
-        email,
-        password,
-      },
-    },
-    { new: true },
-  );
+  const deletedUser = await model.UserModel.findByIdAndDelete(userId);
 
   await deletedUser.save({ validateBeforeSave: false });
 
-  return new ApiResponse(StatusCodes.OK, "User deleted successfully", {});
+  return new ApiResponse(StatusCodes.OK, 'User deleted successfully', {});
 });
 
 module.exports = {

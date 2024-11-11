@@ -1,21 +1,21 @@
-const model = require("../../models/index");
-const { StatusCodes } = require("http-status-codes");
-const { asyncHandler } = require("../../utils/asyncHandler");
-const { ApiError } = require("../../utils/api.error");
-const { ApiResponse } = require("../../utils/api.response");
-const { getMognogoosePagination } = require("../../helpers");
+const model = require('../../models/index');
+const { StatusCodes } = require('http-status-codes');
+const { asyncHandler } = require('../../utils/asyncHandler');
+const { ApiError } = require('../../utils/api.error');
+const { ApiResponse } = require('../../utils/api.response');
+const { getMognogoosePagination } = require('../../helpers');
 
 const createAddress = asyncHandler(async (req, res) => {
   const {
     city,
     country,
-    addressLineOne,
-    addressLineTwo,
-    zipCode,
+    address_line_one,
+    address_line_two,
+    zipcode,
     state,
     phone,
-    firstName,
-    lastName,
+    firstname,
+    lastname,
   } = req.body;
   const owner = req.user._id;
 
@@ -23,16 +23,16 @@ const createAddress = asyncHandler(async (req, res) => {
     owner,
     city,
     country,
-    addressLineOne,
-    addressLineTwo,
-    zipCode,
+    address_line_one,
+    address_line_two,
+    zipcode,
     state,
     phone,
-    firstName,
-    lastName,
+    firstname,
+    lastname,
   });
 
-  return new ApiResponse(StatusCodes.CREATED, "user address added successfully", {
+  return new ApiResponse(StatusCodes.CREATED, 'user address added successfully', {
     address: newAddress,
   });
 });
@@ -52,13 +52,13 @@ const getAllAddresses = asyncHandler(async (req, res) => {
       limit,
       page,
       customLabels: {
-        totalDocs: "totalAddress",
-        docs: "addresses",
+        totalDocs: 'totalAddress',
+        docs: 'addresses',
       },
-    }),
+    })
   );
 
-  return new ApiResponse(StatusCodes.OK, "users addresses fetched successfully", {
+  return new ApiResponse(StatusCodes.OK, 'users addresses fetched successfully', {
     addresses: paginateAddresses,
   });
 });
@@ -67,9 +67,9 @@ const getAddressById = asyncHandler(async (req, res) => {
   const { addressId } = req.params;
   const address = await model.AddressModel.findById(addressId);
 
-  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, "address does not exist");
+  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, 'address does not exist');
 
-  return new ApiResponse(StatusCodes.OK, "user address fetched successfully", {
+  return new ApiResponse(StatusCodes.OK, 'user address fetched successfully', {
     address: address,
   });
 });
@@ -79,13 +79,13 @@ const updateAddress = asyncHandler(async (req, res) => {
   const {
     city,
     country,
-    addressLineOne,
-    addressLineTwo,
-    zipCode,
+    address_line_one,
+    address_line_two,
+    zipcode,
     state,
     phone,
-    firstName,
-    lastName,
+    firstname,
+    lastname,
   } = req.body;
 
   const address = await model.AddressModel.findOne({
@@ -93,7 +93,7 @@ const updateAddress = asyncHandler(async (req, res) => {
     owner: req.user._id,
   });
 
-  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, "address does not exist");
+  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, 'address does not exist');
 
   const updatedAddress = await model.AddressModel.findByIdAndUpdate(
     address._id,
@@ -101,19 +101,19 @@ const updateAddress = asyncHandler(async (req, res) => {
       $set: {
         city,
         country,
-        addressLineOne,
-        addressLineTwo,
-        zipCode,
+        address_line_one,
+        address_line_two,
+        zipcode,
         state,
         phone,
-        firstName,
-        lastName,
+        firstname,
+        lastname,
       },
     },
-    { new: true },
+    { new: true }
   );
 
-  return new ApiResponse(StatusCodes.OK, "user address updated successfully", {
+  return new ApiResponse(StatusCodes.OK, 'user address updated successfully', {
     address: updatedAddress,
   });
 });
@@ -126,9 +126,9 @@ const deleteAddress = asyncHandler(async (req, res) => {
     owner: req.user._id,
   });
 
-  if (!deletedAddress) throw new ApiError(StatusCodes.NOT_FOUND, "address does not exist");
+  if (!deletedAddress) throw new ApiError(StatusCodes.NOT_FOUND, 'address does not exist');
 
-  return new ApiResponse(StatusCodes.OK, "user address deleted successfully", {});
+  return new ApiResponse(StatusCodes.OK, 'user address deleted successfully', {});
 });
 
 module.exports = {

@@ -24,6 +24,7 @@ app.use("/api/v1/users", routers.usersRouter);
 app.use("/api/v1/products", routers.productsRouter);
 app.use("/api/v1/orders", routers.ordersRouter);
 app.use("/api/v1/categories", routers.categoryRouter);
+app.use("/api/v1/addresses", routers.addressesRouter);
 app.use("/api/v1/carts", routers.cartsRouter);
 
 app.use(notFound);
