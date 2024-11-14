@@ -8,7 +8,7 @@ router.route("/provider/paypal").post(verifyJWT, controllers.orderController.gen
 
 router
   .route("/provider/paypal/verify-payment")
-  .post(verifyJWT, controllers.orderController.verifyPaypalyOrder);
+  .post(verifyJWT, controllers.orderController.verifyPaypalOrder);
 
 router
   .route("/status/:orderId")

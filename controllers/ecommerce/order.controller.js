@@ -54,6 +54,8 @@ const generatePaypalOrder = asyncHandler(async (req, res) => {
   const cartItems = cart.items;
   const userCart = await getCart(req.user._id);
 
+  console.log(userCart);
+
   const totalPrice = userCart.totalCart;
 
   const paypalItems = {
@@ -76,7 +78,7 @@ const generatePaypalOrder = asyncHandler(async (req, res) => {
     const { body, ...httpResponse } = await ordersController.ordersCreate(paypalItems);
 
     if (body?.id) {
-      const order = new OrderModel.create({
+      const order = OrderModel.create({
         customer: req.user._id,
         address: addressId,
         items: cartItems,
@@ -139,7 +141,7 @@ async function paypalOrderFulfillmentHelper(orderPaymentId, req) {
   return order;
 }
 
-const verifyPaypalyOrder = asyncHandler(async (req, res) => {
+const verifyPaypalOrder = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
 
   const captureObj = {
@@ -152,7 +154,7 @@ const verifyPaypalyOrder = asyncHandler(async (req, res) => {
   const { statusCode } = httpStatuscode;
 
   if (body?.status === 'COMPLETED') {
-    const order = await paypalOrderFulfillmentHelper(response.id, req);
+    const order = await paypalOrderFulfillmentHelper(body?.id, req);
 
     return new ApiResponse(statusCode, 'order placed successfully', order);
   } else {
@@ -185,11 +187,11 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     { new: true }
   );
 
-  return new ApiResponse(StatusCodes.OK, 'order status changed successfully', {status} );
+  return new ApiResponse(StatusCodes.OK, 'order status changed successfully', { status });
 });
 
 module.exports = {
   generatePaypalOrder,
-  verifyPaypalyOrder,
+  verifyPaypalOrder,
   updateOrderStatus,
 };

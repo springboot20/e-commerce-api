@@ -1,22 +1,35 @@
-const express = require("express");
-const controllers = require("../../controllers/index");
+const express = require('express');
+const controllers = require('../../controllers/index');
 const router = express.Router();
-const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middleware");
-const { RoleEnums } = require("../../constants");
+const { verifyJWT, checkPermissions } = require('../../middlewares/auth.middleware');
+const { RoleEnums } = require('../../constants');
 
 router
-  .route("/")
+  .route('/')
   .post(verifyJWT, controllers.addressController.createAddress)
   .get(
     verifyJWT,
     checkPermissions([RoleEnums.ADMIN]),
-    controllers.addressController.getAllAddresses,
+    controllers.addressController.getAllAddresses
+  )
+  .patch(verifyJWT, controllers.addressController.updateAddress)
+  .get(
+    verifyJWT,
+    checkPermissions([RoleEnums.USER, RoleEnums.ADMIN]),
+    controllers.addressController.getUserAddress
+  ).delete(
+    verifyJWT,
+    checkPermissions([RoleEnums.ADMIN, RoleEnums.USER]),
+    controllers.addressController.deleteAddress
   );
 
 router
-  .route("/:addressId")
-  .get(verifyJWT, controllers.addressController.getAddressById)
-  .patch(verifyJWT, controllers.addressController.updateAddress)
-  .delete(verifyJWT, controllers.addressController.deleteAddress);
+  .route('/:addressId')
+  .get(verifyJWT, checkPermissions([RoleEnums.ADMIN]), controllers.addressController.getUserAddress)
+  .delete(
+    verifyJWT,
+    checkPermissions([RoleEnums.ADMIN, RoleEnums.USER]),
+    controllers.addressController.deleteAddress
+  );
 
 module.exports = router;

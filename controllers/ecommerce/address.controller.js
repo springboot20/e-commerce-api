@@ -19,6 +19,13 @@ const createAddress = asyncHandler(async (req, res) => {
   } = req.body;
   const owner = req.user._id;
 
+  const existingAddress = await model.AddressModel.findOne({ owner: req.user._id });
+
+  if (existingAddress)
+    return new ApiResponse(StatusCodes.OK, 'user address already exists', {
+      address: existingAddress,
+    });
+
   const newAddress = await model.AddressModel.create({
     owner,
     city,
@@ -65,17 +72,29 @@ const getAllAddresses = asyncHandler(async (req, res) => {
 
 const getAddressById = asyncHandler(async (req, res) => {
   const { addressId } = req.params;
+
   const address = await model.AddressModel.findById(addressId);
 
-  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, 'address does not exist');
+  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, 'address does not exist', []);
 
   return new ApiResponse(StatusCodes.OK, 'user address fetched successfully', {
-    address: address,
+    address,
+  });
+});
+
+const getUserAddress = asyncHandler(async (req, res) => {
+  const address = await model.AddressModel.findOne({
+    owner: req.user._id,
+  });
+
+  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, 'user address not found', []);
+
+  return new ApiResponse(StatusCodes.OK, 'user address fetched successfully', {
+    address,
   });
 });
 
 const updateAddress = asyncHandler(async (req, res) => {
-  const { addressId } = req.params;
   const {
     city,
     country,
@@ -89,7 +108,6 @@ const updateAddress = asyncHandler(async (req, res) => {
   } = req.body;
 
   const address = await model.AddressModel.findOne({
-    _id: addressId,
     owner: req.user._id,
   });
 
@@ -123,7 +141,6 @@ const deleteAddress = asyncHandler(async (req, res) => {
 
   const deletedAddress = await model.AddressModel.findOneAndDelete({
     _id: addressId,
-    owner: req.user._id,
   });
 
   if (!deletedAddress) throw new ApiError(StatusCodes.NOT_FOUND, 'address does not exist');
@@ -131,10 +148,24 @@ const deleteAddress = asyncHandler(async (req, res) => {
   return new ApiResponse(StatusCodes.OK, 'user address deleted successfully', {});
 });
 
+const deleteUserAddress = asyncHandler(async (req, res) => {
+  const { addressId } = req.params;
+
+  const deletedAddress = await model.AddressModel.findOneAndDelete({
+    owner: req.user._id,
+  });
+
+  if (!deletedAddress) throw new ApiError(StatusCodes.NOT_FOUND, 'user address does not exist');
+
+  return new ApiResponse(StatusCodes.OK, 'user address deleted successfully', {});
+});
+
 module.exports = {
   createAddress,
   getAllAddresses,
+  getUserAddress,
   getAddressById,
   updateAddress,
   deleteAddress,
+  deleteUserAddress
 };
