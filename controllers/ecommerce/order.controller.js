@@ -47,7 +47,7 @@ const generatePaypalOrder = asyncHandler(async (req, res) => {
 
   const cart = await CartModel.findOne({ owner: req.user._id });
 
-  if (!cart || !cart.items.length) {
+  if (!cart || !cart.items?.length) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "cart is empty", []);
   }
 
@@ -84,7 +84,7 @@ const generatePaypalOrder = asyncHandler(async (req, res) => {
         items: cartItems,
         orderPrice: totalPrice ?? 0,
         paymentMethod: PaymentMethods.PAYPAL,
-        orderId: body.id,
+        paymentId: body?.id,
       });
 
       if (order) {
@@ -104,7 +104,7 @@ const generatePaypalOrder = asyncHandler(async (req, res) => {
 
 async function paypalOrderFulfillmentHelper(orderPaymentId, req) {
   const order = await OrderModel.findOneAndUpdate(
-    { _id: orderPaymentId },
+    { paymentId: orderPaymentId },
     {
       $set: {
         isPaymentDone: true,
@@ -139,7 +139,7 @@ async function paypalOrderFulfillmentHelper(orderPaymentId, req) {
 }
 
 const verifyPaypalOrder = asyncHandler(async (req, res) => {
-  const { orderId } = req.params;
+  const { orderId } = req.body;
 
   const captureObj = {
     id: orderId,

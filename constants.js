@@ -10,6 +10,9 @@ const paypalBaseUrl = {
 
 const AvailableOrderStatusEnums = Object.values(OrderStatuses);
 
+/**
+ * @type {{ UNKNOWN:"UNKNOWN"; PAYPAL: "PAYPAL"; FLUTTERWAVE: "FLUTTERWAVE"; BANK: "BANK";} as const}
+ */
 const PaymentMethods = {
   UNKNOWN: "UNKNOWN",
   BANK: "BANK",
@@ -46,5 +49,5 @@ module.exports = {
   LoginType,
   AvailableLoginType,
   MAX_SUB_IMAGES_TO_BE_UPLOAD,
-  paypalBaseUrl
+  paypalBaseUrl,
 };
