@@ -42,7 +42,7 @@ const OrderSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    paymentId: {
+    orderId: {
       type: String,
     },
     paymentMethod: {

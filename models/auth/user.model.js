@@ -115,11 +115,11 @@ userSchema.pre("save", async function (next) {
     });
   }
 
-  // if (!userAddress) {
-  //   await AddressModel.create({
-  //     owner: this._id,
-  //   });
-  // }
+  if (!userAddress) {
+    await AddressModel.create({
+      owner: this._id,
+    });
+  }
 
   next();
 });

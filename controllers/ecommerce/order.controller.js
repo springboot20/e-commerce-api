@@ -1,11 +1,11 @@
 // const fetch = require("node-fetch");
-const { PaymentMethods, OrderStatuses } = require('../../constants.js');
-const { ApiError } = require('../../utils/api.error');
-const { StatusCodes } = require('http-status-codes');
-const { asyncHandler } = require('../../utils/asyncHandler');
-const { AddressModel, CartModel, OrderModel, ProductModel } = require('../../models');
-const { getCart } = require('./cart.controller');
-const { ApiResponse } = require('../../utils/api.response.js');
+const { PaymentMethods, OrderStatuses } = require("../../constants.js");
+const { ApiError } = require("../../utils/api.error");
+const { StatusCodes } = require("http-status-codes");
+const { asyncHandler } = require("../../utils/asyncHandler");
+const { AddressModel, CartModel, OrderModel, ProductModel } = require("../../models");
+const { getCart } = require("./cart.controller");
+const { ApiResponse } = require("../../utils/api.response.js");
 
 const {
   ApiError: PayPalApiError,
@@ -15,7 +15,7 @@ const {
   LogLevel,
   OrdersController,
   PaymentsController,
-} = require('@paypal/paypal-server-sdk');
+} = require("@paypal/paypal-server-sdk");
 
 const client = new Client({
   clientCredentialsAuthCredentials: {
@@ -42,13 +42,13 @@ const generatePaypalOrder = asyncHandler(async (req, res) => {
   });
 
   if (!userAddress) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'address not found', []);
+    throw new ApiError(StatusCodes.NOT_FOUND, "address not found", []);
   }
 
   const cart = await CartModel.findOne({ owner: req.user._id });
 
   if (!cart || !cart.items.length) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'cart is empty', []);
+    throw new ApiError(StatusCodes.BAD_REQUEST, "cart is empty", []);
   }
 
   const cartItems = cart.items;
@@ -60,18 +60,18 @@ const generatePaypalOrder = asyncHandler(async (req, res) => {
 
   const paypalItems = {
     body: {
-      intent: 'CAPTURE',
+      intent: "CAPTURE",
       purchase_units: [
         {
           amount: {
-            currency_code: 'USD',
+            currency_code: "USD",
             value: (totalPrice / 1645).toFixed(0),
           },
         },
       ],
     },
 
-    prefer: 'return=minimal',
+    prefer: "return=minimal",
   };
 
   try {
@@ -84,16 +84,13 @@ const generatePaypalOrder = asyncHandler(async (req, res) => {
         items: cartItems,
         orderPrice: totalPrice ?? 0,
         paymentMethod: PaymentMethods.PAYPAL,
-        paymentId: body.id,
+        orderId: body.id,
       });
 
       if (order) {
-        return ApiResponse(
-          res,
-          httpResponse.statusCode,
-          'Paypal order created successfully',
-          order
-        );
+        return ApiResponse(res, httpResponse.statusCode, "Paypal order created successfully", {
+          order,
+        });
       }
     }
   } catch (error) {
@@ -101,7 +98,7 @@ const generatePaypalOrder = asyncHandler(async (req, res) => {
       const { statusCode, message } = error;
       throw new ApiError(statusCode, message, []);
     }
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'error while creating paypal order', []);
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "error while creating paypal order", []);
   }
 });
 
@@ -113,11 +110,11 @@ async function paypalOrderFulfillmentHelper(orderPaymentId, req) {
         isPaymentDone: true,
       },
     },
-    { new: true }
+    { new: true },
   );
 
   if (!order) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'order not found', []);
+    throw new ApiError(StatusCodes.NOT_FOUND, "order not found", []);
   }
 
   const cart = await CartModel.findOne({ owner: req.user._id });
@@ -146,21 +143,21 @@ const verifyPaypalOrder = asyncHandler(async (req, res) => {
 
   const captureObj = {
     id: orderId,
-    prefer: 'return=minimal',
+    prefer: "return=minimal",
   };
 
   const { body, ...httpStatuscode } = await ordersController.ordersCapture(captureObj);
 
   const { statusCode } = httpStatuscode;
 
-  if (body?.status === 'COMPLETED') {
+  if (body?.status === "COMPLETED") {
     const order = await paypalOrderFulfillmentHelper(body?.id, req);
 
-    return new ApiResponse(statusCode, 'order placed successfully', order);
+    return new ApiResponse(statusCode, "order placed successfully", order);
   } else {
     throw new ApiError(
       StatusCodes.INTERNAL_SERVER_ERROR,
-      'Something went wrong with paypal payment'
+      "Something went wrong with paypal payment",
     );
   }
 });
@@ -171,10 +168,10 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 
   let order = await OrderModel.findById(orderId);
 
-  if (!order) throw new ApiError(StatusCodes.NOT_FOUND, 'order not exist', []);
+  if (!order) throw new ApiError(StatusCodes.NOT_FOUND, "order not exist", []);
 
   if (order.status === OrderStatuses.COMPLETED) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Order already delivered');
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Order already delivered");
   }
 
   order = await OrderModel.findByIdAndUpdate(
@@ -184,10 +181,10 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
         status,
       },
     },
-    { new: true }
+    { new: true },
   );
 
-  return new ApiResponse(StatusCodes.OK, 'order status changed successfully', { status });
+  return new ApiResponse(StatusCodes.OK, "order status changed successfully", { status });
 });
 
 module.exports = {
