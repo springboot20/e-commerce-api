@@ -10,16 +10,7 @@ const axios = require("axios");
 const crypto = require("crypto");
 
 const generatePaystackOrder = asyncHandler(async (req, res) => {
-  const { addressId, email } = req.body;
-
-  const userAddress = await AddressModel.findOne({
-    _id: addressId,
-    owner: req.user._id,
-  });
-
-  if (!userAddress) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "address not found", []);
-  }
+  const { email } = req.body;
 
   const cart = await CartModel.findOne({ owner: req.user._id });
 
@@ -49,6 +40,8 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
     );
 
     const { data } = response;
+
+    console.log(response)
 
     return ApiResponse(res, StatusCodes.CREATED, data?.message, data);
   } catch (error) {
