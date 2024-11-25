@@ -105,26 +105,20 @@ userSchema.methods.generateTemporaryTokens = function () {
   return { unHashedToken, hashedToken, tokenExpiry };
 };
 
-userSchema.pre("save", async function (next) {
-  const userCart = await CartModel.findOne({ bookedBy: this._id });
-  const userAddress = await AddressModel.findOne({ owner: this._id });
+userSchema.post("save", async function (user, next) {
+  const userCart = await CartModel.findOne({ bookedBy: user._id });
 
   if (!userCart) {
     await CartModel.create({
-      owner: this._id,
-    });
-  }
-
-  if (!userAddress) {
-    await AddressModel.create({
-      owner: this._id,
+      owner: user._id,
+      items: [],
     });
   }
 
   next();
 });
 
-userSchema.plugin(mongooseAggregatePaginate)
+userSchema.plugin(mongooseAggregatePaginate);
 
 const UserModel = model("User", userSchema);
 module.exports = UserModel;

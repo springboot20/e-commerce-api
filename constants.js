@@ -11,12 +11,12 @@ const paypalBaseUrl = {
 const AvailableOrderStatusEnums = Object.values(OrderStatuses);
 
 /**
- * @type {{ UNKNOWN:"UNKNOWN"; PAYPAL: "PAYPAL"; FLUTTERWAVE: "FLUTTERWAVE"; BANK: "BANK";} as const}
+ * @type {{ UNKNOWN:"UNKNOWN"; PAYSTACK: "PAYSTACK"; FLUTTERWAVE: "FLUTTERWAVE"; BANK: "BANK";} as const}
  */
 const PaymentMethods = {
   UNKNOWN: "UNKNOWN",
   BANK: "BANK",
-  PAYPAL: "PAYPAL",
+  PAYSTACK: "PAYSTACK",
   FLUTTERWAVE: "FLUTTERWAVE",
 };
 

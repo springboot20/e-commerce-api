@@ -1,20 +1,21 @@
-const mongoose = require('mongoose');
-const { AvailableOrderStatusEnums, OrderStatuses, AvailablePaymentMethods, PaymentMethods } = require('../../constants');
+const mongoose = require("mongoose");
+const {
+  AvailableOrderStatusEnums,
+  OrderStatuses,
+  AvailablePaymentMethods,
+  PaymentMethods,
+} = require("../../constants");
 const { Schema, model } = mongoose;
 
 const OrderSchema = new Schema(
   {
     customer: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
-    },
-    category: {
-      type: Schema.Types.ObjectId,
-      ref: 'Category',
+      ref: "User",
     },
     address: {
       type: Schema.Types.ObjectId,
-      ref: 'Address',
+      ref: "Address",
     },
     items: {
       type: [
@@ -22,12 +23,12 @@ const OrderSchema = new Schema(
           quantity: {
             type: Number,
             required: true,
-            min: [1, 'Quantity can not be less then 1.'],
+            min: [1, "Quantity can not be less then 1."],
             default: 1,
           },
           productId: {
             type: Schema.Types.ObjectId,
-            ref: 'Product',
+            ref: "Product",
           },
         },
       ],
@@ -59,9 +60,9 @@ const OrderSchema = new Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-const OrderModel = model('Order', OrderSchema);
+const OrderModel = model("Order", OrderSchema);
 
 module.exports = OrderModel;
