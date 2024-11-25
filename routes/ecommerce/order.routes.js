@@ -4,10 +4,12 @@ const controllers = require("../../controllers/index");
 const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middleware");
 const { RoleEnums } = require("../../constants");
 
-router.route("/provider/paypal").post(verifyJWT, controllers.orderController.generatePaystackOrder);
+router
+  .route("/provider/paystack")
+  .post(verifyJWT, controllers.orderController.generatePaystackOrder);
 
 router
-  .route("/provider/paystack/verify-payment")
+  .route("/provider/paystack/webhook")
   .post(verifyJWT, controllers.orderController.orderFulfillmentHelper);
 
 router
