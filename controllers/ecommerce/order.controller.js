@@ -3,11 +3,12 @@ const { PaymentMethods, OrderStatuses } = require("../../constants.js");
 const { ApiError } = require("../../utils/api.error");
 const { StatusCodes } = require("http-status-codes");
 const { asyncHandler } = require("../../utils/asyncHandler");
-const { AddressModel, CartModel, OrderModel, ProductModel } = require("../../models");
+const { CartModel, OrderModel, ProductModel } = require("../../models");
 const { getCart } = require("./cart.controller");
 const { ApiResponse } = require("../../utils/api.response.js");
 const axios = require("axios");
 const crypto = require("crypto");
+const flatted = require("flatted");
 
 const generatePaystackOrder = asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -41,9 +42,7 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
 
     const { data } = response;
 
-    console.log(response)
-
-    return ApiResponse(res, StatusCodes.CREATED, data?.message, data);
+    return new ApiResponse(res, StatusCodes.CREATED, data?.message, data);
   } catch (error) {
     console.error(error);
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Internal Server Error", []);
@@ -52,9 +51,9 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
 
 const orderFulfillmentHelper = asyncHandler(async (req, res) => {
   try {
-    const { addressId, ...rest } = req.body;
-    const body = rest.toString();
-    const jsonData = JSON.parse(body);
+    // Parse the request body as JSON
+    const body = flatted.stringify(req.body);
+    const jsonData = flatted.parse(body);
 
     const hash = crypto
       .createHmac("sha512", process.env.PAYSTACK_SECRET)
@@ -77,8 +76,7 @@ const orderFulfillmentHelper = asyncHandler(async (req, res) => {
           };
         });
 
-        const newOrder = new OrderModel({
-          address: addressId,
+        await OrderModel.create({
           customer: req.user._id,
           items: cart.items,
           orderPrice: jsonData.data.requested_amount ?? 0,
@@ -89,7 +87,6 @@ const orderFulfillmentHelper = asyncHandler(async (req, res) => {
         cart.items = [];
         await ProductModel.bulkWrite(productBulkUpdate, { skipValidation: true });
         await cart.save({ validateBeforeSave: false });
-        await newOrder.save();
 
         return new ApiResponse(StatusCodes.OK, "order created successfully", {});
       }

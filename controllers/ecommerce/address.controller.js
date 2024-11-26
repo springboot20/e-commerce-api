@@ -1,9 +1,9 @@
-const model = require('../../models/index');
-const { StatusCodes } = require('http-status-codes');
-const { asyncHandler } = require('../../utils/asyncHandler');
-const { ApiError } = require('../../utils/api.error');
-const { ApiResponse } = require('../../utils/api.response');
-const { getMognogoosePagination } = require('../../helpers');
+const model = require("../../models/index");
+const { StatusCodes } = require("http-status-codes");
+const { asyncHandler } = require("../../utils/asyncHandler");
+const { ApiError } = require("../../utils/api.error");
+const { ApiResponse } = require("../../utils/api.response");
+const { getMognogoosePagination } = require("../../helpers");
 
 const createAddress = asyncHandler(async (req, res) => {
   const {
@@ -22,7 +22,7 @@ const createAddress = asyncHandler(async (req, res) => {
   const existingAddress = await model.AddressModel.findOne({ owner: req.user._id });
 
   if (existingAddress)
-    return new ApiResponse(StatusCodes.OK, 'user address already exists', {
+    return new ApiResponse(StatusCodes.OK, "user address already exists", {
       address: existingAddress,
     });
 
@@ -39,7 +39,12 @@ const createAddress = asyncHandler(async (req, res) => {
     lastname,
   });
 
-  return new ApiResponse(StatusCodes.CREATED, 'user address added successfully', {
+  await model.OrderModel({
+    owner,
+    address: newAddress._id,
+  });
+
+  return new ApiResponse(StatusCodes.CREATED, "user address added successfully", {
     address: newAddress,
   });
 });
@@ -59,13 +64,13 @@ const getAllAddresses = asyncHandler(async (req, res) => {
       limit,
       page,
       customLabels: {
-        totalDocs: 'totalAddress',
-        docs: 'addresses',
+        totalDocs: "totalAddress",
+        docs: "addresses",
       },
-    })
+    }),
   );
 
-  return new ApiResponse(StatusCodes.OK, 'users addresses fetched successfully', {
+  return new ApiResponse(StatusCodes.OK, "users addresses fetched successfully", {
     addresses: paginateAddresses,
   });
 });
@@ -75,9 +80,9 @@ const getAddressById = asyncHandler(async (req, res) => {
 
   const address = await model.AddressModel.findById(addressId);
 
-  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, 'address does not exist', []);
+  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, "address does not exist", []);
 
-  return new ApiResponse(StatusCodes.OK, 'user address fetched successfully', {
+  return new ApiResponse(StatusCodes.OK, "user address fetched successfully", {
     address,
   });
 });
@@ -87,9 +92,9 @@ const getUserAddress = asyncHandler(async (req, res) => {
     owner: req.user._id,
   });
 
-  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, 'user address not found', []);
+  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, "user address not found", []);
 
-  return new ApiResponse(StatusCodes.OK, 'user address fetched successfully', {
+  return new ApiResponse(StatusCodes.OK, "user address fetched successfully", {
     address,
   });
 });
@@ -111,7 +116,7 @@ const updateAddress = asyncHandler(async (req, res) => {
     owner: req.user._id,
   });
 
-  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, 'address does not exist');
+  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, "address does not exist");
 
   const updatedAddress = await model.AddressModel.findByIdAndUpdate(
     address._id,
@@ -128,10 +133,10 @@ const updateAddress = asyncHandler(async (req, res) => {
         lastname,
       },
     },
-    { new: true }
+    { new: true },
   );
 
-  return new ApiResponse(StatusCodes.OK, 'user address updated successfully', {
+  return new ApiResponse(StatusCodes.OK, "user address updated successfully", {
     address: updatedAddress,
   });
 });
@@ -143,9 +148,9 @@ const deleteAddress = asyncHandler(async (req, res) => {
     _id: addressId,
   });
 
-  if (!deletedAddress) throw new ApiError(StatusCodes.NOT_FOUND, 'address does not exist');
+  if (!deletedAddress) throw new ApiError(StatusCodes.NOT_FOUND, "address does not exist");
 
-  return new ApiResponse(StatusCodes.OK, 'user address deleted successfully', {});
+  return new ApiResponse(StatusCodes.OK, "user address deleted successfully", {});
 });
 
 const deleteUserAddress = asyncHandler(async (req, res) => {
@@ -155,9 +160,9 @@ const deleteUserAddress = asyncHandler(async (req, res) => {
     owner: req.user._id,
   });
 
-  if (!deletedAddress) throw new ApiError(StatusCodes.NOT_FOUND, 'user address does not exist');
+  if (!deletedAddress) throw new ApiError(StatusCodes.NOT_FOUND, "user address does not exist");
 
-  return new ApiResponse(StatusCodes.OK, 'user address deleted successfully', {});
+  return new ApiResponse(StatusCodes.OK, "user address deleted successfully", {});
 });
 
 module.exports = {
@@ -167,5 +172,5 @@ module.exports = {
   getAddressById,
   updateAddress,
   deleteAddress,
-  deleteUserAddress
+  deleteUserAddress,
 };
