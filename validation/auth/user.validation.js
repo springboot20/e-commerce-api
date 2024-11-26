@@ -1,7 +1,7 @@
 const { body } = require("express-validator");
 const { AvailableRoles } = require("../../constants");
 
-const passwordReg = /^(?=.*[a-z])(?=.*[A-Z]*)(?=.*\d)(?=.*[-.+@_&]).{8,20}$/;
+// const passwordReg = /^(?=.*[a-z])(?=.*[A-Z]*)(?=.*\d)(?=.*[-.+@_&]).{8,20}$/;
 
 const registerValidator = () => [
   body("username").trim().notEmpty().withMessage("username is required"),

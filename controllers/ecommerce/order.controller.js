@@ -28,7 +28,7 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
       "https://api.paystack.co/transaction/initialize",
       {
         email: email,
-        amount: (totalPrice * 1700).toFixed(3), // Paystack amount is in kobo
+        amount: (totalPrice * 100).toFixed(3), // Paystack amount is in kobo
         metadata: {
           user_cart: cartItems,
         },
@@ -36,6 +36,7 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
       {
         headers: {
           Authorization: `Bearer ${process.env.PAYSTACK_SECRET}`,
+          "Content-Type": "application/json",
         },
       },
     );
