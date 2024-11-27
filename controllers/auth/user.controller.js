@@ -4,7 +4,10 @@ const { StatusCodes } = require("http-status-codes");
 const { ApiError } = require("../../utils/api.error");
 const { ApiResponse } = require("../../utils/api.response");
 const { getFileLocalPath, getFileStaticPath, getMognogoosePagination } = require("../../helpers");
-const { uploadFileToCloudinary } = require("../../configs/cloudinary.config");
+const {
+  uploadFileToCloudinary,
+  deleteFileFromCloudinary,
+} = require("../../configs/cloudinary.config");
 
 const getUsers = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
@@ -83,13 +86,21 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
-  if (!req.file) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "user avatar image is required");
-  }
+  const user = await model.UserModel.findById(req?.user?._id);
+
+  if (!user) throw new ApiError(StatusCodes.NOT_FOUND, "user not found", []);
+
   let uploadImage;
 
   if (req.file) {
-    uploadImage = await uploadFileToCloudinary(req.file.buffer, process.env.CLOUDINARY_FOLDER);
+    if (user?.avatar?.public_id !== null) {
+      await deleteFileFromCloudinary(user?.avatar?.public_id);
+    }
+
+    uploadImage = await uploadFileToCloudinary(
+      req.file.buffer,
+      `${process.env.CLOUDINARY_FOLDER}/users-image`,
+    );
   }
 
   const userAvatarUpdate = await model.UserModel.findByIdAndUpdate(
@@ -135,14 +146,17 @@ const updateUser = asyncHandler(async (req, res) => {
   return new ApiResponse(StatusCodes.OK, "User updated successfully", { user: updatedUser });
 });
 
-const deleteUser = asyncHandler(async (req, res, next) => {
+const deleteUser = asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
-  const deletedUser = await model.UserModel.findByIdAndDelete(userId);
+  const user = await model.UserModel.findById(userId);
 
-  await deletedUser.save({ validateBeforeSave: false });
+  if (!user) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
 
-  return new ApiResponse(StatusCodes.OK, "User deleted successfully", {});
+  await deleteFileFromCloudinary(user?.avatar?.public_id);
+  await model.UserModel.findByIdAndDelete(userId);
+
+  return new ApiResponse(StatusCodes.OK, "user deleted successfully", {});
 });
 
 module.exports = {
