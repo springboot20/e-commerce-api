@@ -32,7 +32,11 @@ const userSchema = new Schema(
     avatar: {
       type: {
         url: String,
-        localPath: String,
+        public_id: String,
+      },
+      default: {
+        url: null,
+        public_id: null,
       },
     },
     role: {
