@@ -99,7 +99,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
     uploadImage = await uploadFileToCloudinary(
       req.file.buffer,
-      `${process.env.CLOUDINARY_FOLDER}/users-image`,
+      `${process.env.CLOUDINARY_BASE_FOLDER}/users-image`,
     );
   }
 

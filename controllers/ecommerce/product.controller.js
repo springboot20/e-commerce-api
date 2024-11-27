@@ -36,7 +36,7 @@ const createNewProduct = asyncHandler(
     if (req?.files?.imageSrc) {
       uploadImage = await uploadFileToCloudinary(
         req.files?.imageSrc?.buffer,
-        process.env.CLOUDINARY_FOLDER,
+        `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
       );
     }
 
