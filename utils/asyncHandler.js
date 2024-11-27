@@ -1,4 +1,4 @@
-const { StatusCodes } = require('http-status-codes');
+const { StatusCodes } = require("http-status-codes");
 
 const asyncHandler = (callbackFunc) => {
   return async (req, res, next) => {

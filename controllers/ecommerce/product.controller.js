@@ -3,155 +3,204 @@ const { StatusCodes } = require("http-status-codes");
 const { asyncHandler } = require("../../utils/asyncHandler");
 const { ApiError } = require("../../utils/api.error");
 const { ApiResponse } = require("../../utils/api.response");
-const {
-  getFileStaticPath,
-  getFileLocalPath,
-  removeFileOnError,
-  getMognogoosePagination,
-} = require("../../helpers");
+const { getMognogoosePagination } = require("../../helpers");
 
 const { default: mongoose } = require("mongoose");
+const {
+  uploadFileToCloudinary,
+  deleteFileFromCloudinary,
+} = require("../../configs/cloudinary.config");
 
-const createNewProduct = asyncHandler(async (req, res) => {
-  const { name, price, description, category, stock, featured } = req.body;
+const createNewProduct = asyncHandler(
+  /**
+   *
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @returns
+   */
+  async (req, res) => {
+    const { name, price, description, category, stock, featured } = req.body;
 
-  const productCategory = await model.CategoryModel.findById(category);
+    const productCategory = await model.CategoryModel.findById(category);
 
-  if (!productCategory) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "product category does not exists", []);
-  }
+    if (!productCategory) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "product category does not exists", []);
+    }
 
-  if (!req.files.imageSrc || !req.files.imageSrc.length) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "no images upload", []);
-  }
+    let uploadImage;
 
-  const imageStaticUrl = getFileStaticPath(req, req.files.imageSrc[0]?.filename);
-  const imageLocalPath = getFileLocalPath(req.files.imageSrc[0]?.filename);
-  const user = req.user._id;
+    if (!req.files || !req.files.imageSrc.length) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "no images upload", []);
+    }
 
-  const createdProduct = await model.ProductModel.create({
-    user,
-    name,
-    price,
-    description,
-    category,
-    featured,
-    imageSrc: {
-      url: imageStaticUrl,
-      localPath: imageLocalPath,
-    },
-    category: productCategory,
-    stock,
-  });
+    if (req?.files?.imageSrc) {
+      uploadImage = await uploadFileToCloudinary(
+        req.files?.imageSrc?.buffer,
+        process.env.CLOUDINARY_FOLDER,
+      );
+    }
 
-  return new ApiResponse(StatusCodes.CREATED, "product created successfully", {
-    product: createdProduct,
-  });
-});
+    const user = req.user._id;
 
-const getProduct = asyncHandler(async (req, res) => {
-  const { productId } = req.params;
-  const product = await model.ProductModel.findById(productId);
-
-  if (!product) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
-  }
-
-  return new ApiResponse(StatusCodes.OK, "product fetched successfully", { product });
-});
-
-const getProductsByCategory = asyncHandler(async (req, res) => {
-  const { categoryId } = req.params;
-  const { page = 1, limit = 10 } = req.query;
-
-  const productCategory = await model.CategoryModel.findById(categoryId).select("name _id");
-
-  if (!productCategory) throw new ApiError(StatusCodes.NOT_FOUND, "category not found");
-
-  const productAggregate = model.ProductModel.aggregate([
-    {
-      $match: {
-        category: new mongoose.Types.ObjectId(categoryId),
+    const createdProduct = await model.ProductModel.create({
+      user,
+      name,
+      price,
+      description,
+      category,
+      featured,
+      imageSrc: {
+        url: uploadImage?.secure_url,
+        public_id: uploadImage?.public_id,
       },
-    },
-  ]);
+      category: productCategory,
+      stock,
+    });
 
-  const paginatedProducts = await model.ProductModel.aggregatePaginate(
-    productAggregate,
-    getMognogoosePagination({
-      limit,
-      page,
-      customLabels: {
-        totalDocs: "totalProducts",
-        docs: "products",
+    return new ApiResponse(StatusCodes.CREATED, "product created successfully", {
+      product: createdProduct,
+    });
+  },
+);
+
+const getProduct = asyncHandler(
+  /**
+   *
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @returns
+   */
+  async (req, res) => {
+    const { productId } = req.params;
+    const product = await model.ProductModel.findById(productId);
+
+    if (!product) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
+    }
+
+    return new ApiResponse(StatusCodes.OK, "product fetched successfully", { product });
+  },
+);
+
+const getProductsByCategory = asyncHandler(
+  /**
+   *
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @returns
+   */
+  async (req, res) => {
+    const { categoryId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    const productCategory = await model.CategoryModel.findById(categoryId).select("name _id");
+
+    if (!productCategory) throw new ApiError(StatusCodes.NOT_FOUND, "category not found");
+
+    const productAggregate = model.ProductModel.aggregate([
+      {
+        $match: {
+          category: new mongoose.Types.ObjectId(categoryId),
+        },
       },
-    }),
-  );
+    ]);
 
-  console.log(paginatedProducts);
+    const paginatedProducts = await model.ProductModel.aggregatePaginate(
+      productAggregate,
+      getMognogoosePagination({
+        limit,
+        page,
+        customLabels: {
+          totalDocs: "totalProducts",
+          docs: "products",
+        },
+      }),
+    );
 
-  return new ApiResponse(
-    StatusCodes.OK,
-    "products category fetched successfully",
-    paginatedProducts,
-  );
-});
+    console.log(paginatedProducts);
 
-const updateProduct = asyncHandler(async (req, res) => {
-  const { productId } = req.params;
-  const { name, price, description, category, stock, featured } = req.body;
+    return new ApiResponse(
+      StatusCodes.OK,
+      "products category fetched successfully",
+      paginatedProducts,
+    );
+  },
+);
 
-  const product = await model.ProductModel.findById(productId);
+const updateProduct = asyncHandler(
+  /**
+   *
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @returns
+   */
+  async (req, res) => {
+    const { productId } = req.params;
+    const { name, price, description, category, stock, featured } = req.body;
 
-  if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
+    const product = await model.ProductModel.findById(productId).session(session);
 
-  const imageUrl = getFileStaticPath(req, req.files.imageSrc?.filename);
-  const imageLocalPath = getFileLocalPath(req.files.imageSrc?.filename);
+    if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
 
-  const updatedProductImageSrc = req.file.imageSrc.length
-    ? {
-        url: imageUrl,
-        localPath: imageLocalPath,
+    let uploadImage;
+
+    if (req.files.imageSrc) {
+      if (product.imageSrc?.public_id) {
+        await deleteFileFromCloudinary(product.imageSrc?.public_id);
       }
-    : product.imageSrc;
 
-  if (updatedProductImageSrc.url !== product.imageSrc.url) {
-    removeFileOnError(product.imageSrc.url);
-  }
+      uploadImage = await uploadFileToCloudinary(
+        req?.files?.imageSrc?.buffer,
+        process.env.CLOUDINARY_FOLDER,
+      );
+    }
 
-  const updatedProduct = await model.ProductModel.findByIdAndUpdate(
-    productId,
-    {
-      $set: {
-        user: req.user._id,
-        name,
-        price,
-        description,
-        featured,
-        imageSrc: updatedProductImageSrc,
-        category: category,
-        stock,
+    const updatedProduct = await model.ProductModel.findByIdAndUpdate(
+      productId,
+      {
+        $set: {
+          user: req.user._id,
+          name,
+          price,
+          description,
+          featured,
+          imageSrc: {
+            url: uploadImage?.secure_url,
+            public_id: uploadImage?.public_id,
+          },
+          category: category,
+          stock,
+        },
       },
-    },
-    { new: true },
-  );
+      { new: true },
+    );
 
-  return new ApiResponse(StatusCodes.OK, "product updated successfully", {
-    product: updatedProduct,
-  });
-});
+    return new ApiResponse(StatusCodes.OK, "product updated successfully", {
+      product: updatedProduct,
+    });
+  },
+);
 
-const deleteProduct = asyncHandler(async (req, res) => {
-  const { productId } = req.params;
+const deleteProduct = asyncHandler(
+  /**
+   *
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @returns
+   */
+  async (req, res) => {
+    const { productId } = req.params;
 
-  const product = await model.ProductModel.findOneAndDelete({ _id: productId });
+    const product = await model.ProductModel.findById(productId);
 
-  if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
+    if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
 
-  removeFileOnError(product.imageSrc.localPath);
+    await deleteFileFromCloudinary(product?.imageSrc?.public_id);
+    await model.ProductModel.findOneAndDelete({ _id: productId });
 
-  return new ApiResponse(StatusCodes.OK, "product deleted successfully", {});
-});
+    return new ApiResponse(StatusCodes.OK, "product deleted successfully", {});
+  },
+);
 
 const getAllProducts = asyncHandler(
   /**

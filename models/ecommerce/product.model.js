@@ -29,7 +29,11 @@ const ProductSchema = new Schema(
     imageSrc: {
       type: {
         url: String,
-        localPath: String,
+        public_id: String,
+      },
+      default: {
+        url: null,
+        public_id: null,
       },
     },
     category: {
@@ -55,8 +59,7 @@ const ProductSchema = new Schema(
 //   await this.model('Review').deleteMany({ product: this._id });
 // });
 
-ProductSchema.plugin(mongooseAggregatePaginate)
-
+ProductSchema.plugin(mongooseAggregatePaginate);
 
 const ProductModel = model("Product", ProductSchema);
 
