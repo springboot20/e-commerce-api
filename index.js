@@ -16,24 +16,8 @@ const PORT = process.env.PORT ?? 5000;
 
 app.use(express.json());
 
-const allowedOrigins = [process.env.CORS_ORIGIN];
-
 app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg =
-          "The CORS policy for this site does not allow access from the specified Origin.";
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
-    credentials: true, // Allow cookies and authorization headers
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // Specify allowed methods
-    allowedHeaders: ["Content-Type", "Authorization"], // Specify allowed headers
-  }),
+  cors(),
 );
 
 app.use(express.urlencoded({ extended: true }));
