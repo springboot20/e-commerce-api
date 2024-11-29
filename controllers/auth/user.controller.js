@@ -3,7 +3,7 @@ const { asyncHandler } = require("../../utils/asyncHandler");
 const { StatusCodes } = require("http-status-codes");
 const { ApiError } = require("../../utils/api.error");
 const { ApiResponse } = require("../../utils/api.response");
-const { getFileLocalPath, getFileStaticPath, getMognogoosePagination } = require("../../helpers");
+const { getMognogoosePagination } = require("../../helpers");
 const {
   uploadFileToCloudinary,
   deleteFileFromCloudinary,
@@ -123,7 +123,7 @@ const updateUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
   const { userId } = req.params;
 
-  const user = await UserModel.findById(userId);
+  const user = await model.UserModel.findById(userId);
 
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Unable to find user");
