@@ -6,6 +6,7 @@ const { tokenResponse } = require("../../utils/jwt");
 const { StatusCodes } = require("http-status-codes");
 const { RoleEnums } = require("../../constants");
 const bcrypt = require("bcryptjs");
+const { sendEmailVerification } = require("./email.controller");
 
 const register = asyncHandler(
   /**
@@ -25,6 +26,24 @@ const register = asyncHandler(
       role: role ?? RoleEnums.USER,
     });
 
+    const { unHashedToken, hashedToken, tokenExpiry } = user.generateTemporaryTokens();
+
+    user.emailVerificationToken = hashedToken;
+    user.emailVerificationTokenExpiry = tokenExpiry;
+
+    await user.save({ validateBeforeSave: false });
+
+    const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${
+      user._id
+    }/${unHashedToken}`;
+
+    await sendEmailVerification(
+      user?.email,
+      "Email verification",
+      { username: user?.username, verificationLink: verifyLink },
+      "email",
+    );
+
     await user.save({ validateBeforeSave: false });
 
     const createdUser = await model.UserModel.findById(user._id).select(
@@ -35,9 +54,13 @@ const register = asyncHandler(
       throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
     }
 
-    return new ApiResponse(StatusCodes.OK, "You have successfully created an account", {
-      user: createdUser,
-    });
+    return new ApiResponse(
+      StatusCodes.OK,
+      "User registration successfull and verification email has been sent to you email",
+      {
+        user: createdUser,
+      },
+    );
   },
 );
 

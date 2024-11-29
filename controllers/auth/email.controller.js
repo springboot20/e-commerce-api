@@ -5,42 +5,6 @@ const { StatusCodes } = require("http-status-codes");
 const model = require("../../models/index");
 const { sendMail } = require("../../service/email.service");
 
-const sendEmailVerification = asyncHandler(
-  /**
-   * @param {import("express").Request} req
-   * @param {import("express").Response} res
-   */
-  async (req, res) => {
-    const { email } = req.body;
-
-    console.log(email);
-
-    const user = await model.UserModel.findOne({ email });
-    console.log(user);
-    if (!user) throw new ApiError(StatusCodes.NOT_FOUND, "user does not exits", []);
-
-    const { unHashedToken, hashedToken, tokenExpiry } = user.generateTemporaryTokens();
-
-    user.emailVerificationToken = hashedToken;
-    user.emailVerificationTokenExpiry = tokenExpiry;
-    
-    await user.save({ validateBeforeSave: false });
-
-    const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${
-      user._id
-    }/${unHashedToken}`;
-
-    await sendMail(
-      user?.email,
-      "Email verification",
-      { username: user?.username, verificationLink: verifyLink },
-      "email",
-    );
-
-    return new ApiResponse(StatusCodes.OK, "email verificaton sent successfully", {});
-  },
-);
-
 const emailVerification = asyncHandler(async (req, res) => {
   const { token, id } = req.params;
 
@@ -133,7 +97,6 @@ const resendEmailVerification = asyncHandler(
 );
 
 module.exports = {
-  sendEmailVerification,
   emailVerification,
   forgotPassword,
   resendEmailVerification,
