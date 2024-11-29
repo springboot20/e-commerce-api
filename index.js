@@ -33,8 +33,13 @@ app.use("/api/v1/categories", routers.categoryRouter);
 app.use("/api/v1/addresses", routers.addressesRouter);
 app.use("/api/v1/carts", routers.cartsRouter);
 
-app.use(notFound);
-app.use(errorMiddleware);
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "*");
+
+  next();
+});
 
 const serverConnection = () => {
   app.listen(PORT, () => {
@@ -60,3 +65,6 @@ dataBaseConnection()
   .catch((error) => {
     console.log(error);
   });
+
+app.use(notFound);
+app.use(errorMiddleware);
