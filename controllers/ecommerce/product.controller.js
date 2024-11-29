@@ -29,11 +29,11 @@ const createNewProduct = asyncHandler(
 
     let uploadImage;
 
-    if (!req.file || !req.file.imageSrc) {
+    if (!req.file) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "no image upload", []);
     }
 
-    if (req?.files?.imageSrc) {
+    if (req?.files) {
       uploadImage = await uploadFileToCloudinary(
         req.files?.imageSrc?.buffer,
         `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
@@ -144,7 +144,7 @@ const updateProduct = asyncHandler(
 
     let uploadImage;
 
-    if (req.file.imageSrc) {
+    if (req.file) {
       if (product.imageSrc?.public_id) {
         await deleteFileFromCloudinary(product.imageSrc?.public_id);
       }
