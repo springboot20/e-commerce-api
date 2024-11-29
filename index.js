@@ -14,18 +14,15 @@ const { errorMiddleware } = require("./middlewares/error.middleware");
 const app = express();
 const PORT = process.env.PORT ?? 5000;
 
-app.use(express.json());
-
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN,
-    allowedHeaders: "*",
+    allowedHeaders: ["Authorization", "Content-Type", "Origin"],
     credentials: true,
   }),
 );
-app.options("*", cors()); // Handle preflight requests for all routes
-
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "16kb" }));
+app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser(process.env.JWT_SECRET));
 
