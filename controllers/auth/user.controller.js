@@ -156,7 +156,7 @@ const deleteUser = asyncHandler(async (req, res) => {
 
   if (!user) throw new ApiError(StatusCodes.NOT_FOUND, "user not found", []);
 
-  await deleteFileFromCloudinary(user?.avatar?.public_id);
+  if (user?.avatar?.public_id !== null) await deleteFileFromCloudinary(user?.avatar?.public_id);
   await model.UserModel.findByIdAndDelete(userId);
 
   return new ApiResponse(StatusCodes.OK, "user deleted successfully", {});
