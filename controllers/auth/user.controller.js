@@ -121,16 +121,15 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
-  const { userId } = req.params;
 
-  const user = await model.UserModel.findById(userId);
+  const user = await model.UserModel.findById(req.user?._id);
 
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Unable to find user");
   }
 
   const updatedUser = await model.UserModel.findByIdAndUpdate(
-    user._id,
+    req.user?._id,
     {
       $set: {
         username,
