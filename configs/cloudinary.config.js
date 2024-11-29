@@ -1,11 +1,11 @@
-const cloudinary = require("cloudinary").v2;
+const { v2 } = require("cloudinary");
 const { ApiError } = require("../utils/api.error");
 const dotenv = require("dotenv");
 const { StatusCodes } = require("http-status-codes");
 
 dotenv.config();
 
-cloudinary.config({
+v2.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -19,7 +19,7 @@ cloudinary.config({
  */
 const uploadFileToCloudinary = async (buffer, folder) => {
   return new Promise((resolve, reject) => {
-    cloudinary.uploader
+    v2.uploader
       .upload_stream({ resource_type: "auto", folder }, (error, result) => {
         if (error) {
           reject(new ApiError(StatusCodes.BAD_REQUEST, error.message));
@@ -40,7 +40,7 @@ const uploadFileToCloudinary = async (buffer, folder) => {
  */
 const deleteFileFromCloudinary = async (public_id, resource_type = "image", type = "image") => {
   try {
-    const deletedResource = await cloudinary.uploader.destroy(
+    const deletedResource = await v2.uploader.destroy(
       public_id,
       {
         resource_type,
