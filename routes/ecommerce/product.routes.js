@@ -9,12 +9,7 @@ router
   .route("/")
   .get(controllers.productController.getAllProducts)
   .post(
-    upload.fields([
-      {
-        name: "imageSrc",
-        maxCount: 1,
-      },
-    ]),
+    upload.single("imageSrc"),
     verifyJWT,
     checkPermissions([RoleEnums.ADMIN]),
     controllers.productController.createNewProduct,
@@ -26,11 +21,8 @@ router
   .patch(
     checkPermissions([RoleEnums.ADMIN]),
     verifyJWT,
+    upload.single("imageSrc"),
     upload.fields([
-      {
-        name: "imageSrc",
-        maxCount: 1,
-      },
       {
         name: "subImgs",
         maxCount: MAX_SUB_IMAGES_TO_BE_UPLOAD,
@@ -47,6 +39,5 @@ router
 router
   .route("/category/:categoryId")
   .get(verifyJWT, controllers.productController.getProductsByCategory);
-
 
 module.exports = router;
