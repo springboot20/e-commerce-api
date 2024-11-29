@@ -35,7 +35,7 @@ const userSchema = new Schema(
         public_id: String,
       },
       default: {
-        url: null,
+        url: `https://via.placeholder.com/200x200.png`,
         public_id: null,
       },
     },
