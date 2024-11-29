@@ -6,7 +6,7 @@ const { RoleEnums } = require("../../constants");
 
 router
   .route("/")
-  .get(verifyJWT, controllers.cartController.getUserCart)
+  .get(verifyJWT, controllers.cartController.getUserCart)   
   .patch(verifyJWT, controllers.cartController.clearCart);
 
 router

@@ -141,7 +141,7 @@ const clearCart = asyncHandler(async (req, res, next) => {
 
   const userCart = await getCart(req.user._id);
 
-  return new ApiResponse(StatusCodes.OK, "item added to cart", { cart: userCart });
+  return new ApiResponse(StatusCodes.OK, "cart cleared", { cart: userCart });
 });
 
 module.exports = {
