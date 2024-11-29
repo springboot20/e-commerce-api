@@ -94,13 +94,15 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "user avatar image is required");
   }
 
+  console.log(req.file)
+
   let uploadImage;
 
   if (req.file) {
+
     if (user?.avatar?.public_id !== null) {
       await deleteFileFromCloudinary(user?.avatar?.public_id);
     }
-
     uploadImage = await uploadFileToCloudinary(
       req.file.buffer,
       `${process.env.CLOUDINARY_BASE_FOLDER}/users-image`,

@@ -11,11 +11,17 @@ v2.config({
   cloud_name: process.env.CLOUDINARY_NAME,
 });
 
+
+console.log({
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.CLOUDINARY_NAME,
+})
+
 /**
  *
  * @param {Buffer} buffer
  * @param {string} folder
- * @return {Promise<import("cloudinary").UploadApiResponse>}
  */
 const uploadFileToCloudinary = async (buffer, folder) => {
   return new Promise((resolve, reject) => {
