@@ -22,6 +22,8 @@ const emailVerification = asyncHandler(async (req, res) => {
   user.emailVerificationTokenExpiry = undefined;
   user.isEmailVerified = true;
 
+  await user.save({ validateBeforeSave: false });
+
   return new ApiResponse(StatusCodes.OK, "user email verified successfully", {
     isEmailVerified: true,
   });
@@ -46,6 +48,8 @@ const forgotPassword = asyncHandler(
 
     user.forgotPasswordToken = hashedToken;
     user.forgotPasswordExpiry = tokenExpiry;
+
+    await user.save({ validateBeforeSave: false });
 
     const resetLink = `${req.protocol}://${req.get("host")}/api/v1/reset-password/${unHashedToken}`;
 
@@ -80,6 +84,8 @@ const resendEmailVerification = asyncHandler(
 
     user.emailVerificationToken = hashedToken;
     user.emailVerificationTokenExpiry = tokenExpiry;
+
+    await user.save({ validateBeforeSave: false });
 
     const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/verify-email/${unHashedToken}`;
 

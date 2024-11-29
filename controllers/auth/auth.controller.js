@@ -6,7 +6,7 @@ const { tokenResponse } = require("../../utils/jwt");
 const { StatusCodes } = require("http-status-codes");
 const { RoleEnums } = require("../../constants");
 const bcrypt = require("bcryptjs");
-const { sendEmailVerification } = require("./email.controller");
+const { sendMail } = require("../../service/email.service");
 
 const register = asyncHandler(
   /**
@@ -37,7 +37,7 @@ const register = asyncHandler(
       user._id
     }/${unHashedToken}`;
 
-    await sendEmailVerification(
+    await sendMail(
       user?.email,
       "Email verification",
       { username: user?.username, verificationLink: verifyLink },
