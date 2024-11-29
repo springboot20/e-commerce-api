@@ -107,6 +107,8 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     );
   }
 
+  console.log(uploadImage);
+
   const userAvatarUpdate = await model.UserModel.findByIdAndUpdate(
     req.user._id,
     {
@@ -120,7 +122,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     { new: true },
   );
 
-  return new ApiResponse(StatusCodes.OK, "users fetched successfully", { user: userAvatarUpdate });
+  return new ApiResponse(StatusCodes.OK, "users fetched successfully", { user, file: req.file });
 });
 
 const updateUser = asyncHandler(async (req, res) => {

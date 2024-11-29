@@ -58,6 +58,6 @@ router.route("/logout").post(verifyJWT, controllers.authController.logOut);
 
 router
   .route("/upload-avatar")
-  .patch(verifyJWT, upload.single("avatar"), controllers.userController.updateUserAvatar);
+  .post(verifyJWT, upload.single("avatar"), controllers.userController.updateUserAvatar);
 
 module.exports = router;
