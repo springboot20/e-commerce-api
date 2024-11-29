@@ -20,7 +20,6 @@ app.use(
   cors({
     origin: process.env.CORS_ORIGIN,
     allowedHeaders: process.env.CORS_ORIGIN,
-    allowMethods: process.env.CORS_ORIGIN,
     credentials: true,
   }),
 );
