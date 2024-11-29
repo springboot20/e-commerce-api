@@ -121,8 +121,9 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     },
     { new: true },
   );
+  console.log(userAvatarUpdate)
 
-  return new ApiResponse(StatusCodes.OK, "users fetched successfully", { user, file: req.file });
+  return new ApiResponse(StatusCodes.OK, "users fetched successfully", { user:userAvatarUpdate });
 });
 
 const updateUser = asyncHandler(async (req, res) => {
