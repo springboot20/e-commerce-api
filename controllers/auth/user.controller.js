@@ -151,7 +151,7 @@ const deleteUser = asyncHandler(async (req, res) => {
 
   const user = await model.UserModel.findById(userId);
 
-  if (!user) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
+  if (!user) throw new ApiError(StatusCodes.NOT_FOUND, "user not found", []);
 
   await deleteFileFromCloudinary(user?.avatar?.public_id);
   await model.UserModel.findByIdAndDelete(userId);
