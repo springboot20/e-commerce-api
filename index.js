@@ -18,20 +18,8 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      const allowedOrigins = ["https://cv-ecommerce-project.vercel.app/"];
-
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg =
-          "The CORS policy for this site does not allow access from the specified Origin.";
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
-    credentials: true, // Allow cookies and credentials
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: process.env.CORS_ORIGIN,
+    credentials: true,
   }),
 );
 app.options("*", cors()); // Handle preflight requests for all routes
@@ -46,30 +34,6 @@ app.use("/api/v1/orders", routers.ordersRouter);
 app.use("/api/v1/categories", routers.categoryRouter);
 app.use("/api/v1/addresses", routers.addressesRouter);
 app.use("/api/v1/carts", routers.cartsRouter);
-
-app.use((req, res, next) => {
-  const allowedOrigins = ["https://cv-ecommerce-project.vercel.app/"];
-  const origin = req.headers.origin;
-
-  if (allowedOrigins.indexOf(origin) != -1) {
-    res.header("Access-Control-Allow-Origin", origin);
-  } else {
-    res.header("Access-Control-Allow-Origin", "*");
-  }
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin,Content-Type,Authorization,Accept,X-Requested-With,Cookie,User-Agent,Host,Referer",
-  );
-  res.header("Access-Control-Expose-Headers", "Content-Disposition");
-  if ("OPTIONS" == req.method) {
-    res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
 
 app.use(notFound);
 app.use(errorMiddleware);
