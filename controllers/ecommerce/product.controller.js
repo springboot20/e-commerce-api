@@ -26,14 +26,12 @@ const createNewProduct = asyncHandler(
     if (!productCategory) {
       throw new ApiError(StatusCodes.NOT_FOUND, "product category does not exists", []);
     }
-
-    console.log(req.file)
-
-    let uploadImage;
-
+    
     if (!req.file) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "no image upload", []);
     }
+
+    let uploadImage;
 
     if (req.file) {
       uploadImage = await uploadFileToCloudinary(

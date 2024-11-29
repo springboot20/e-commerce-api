@@ -94,8 +94,6 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "user avatar image is required");
   }
 
-  console.log(req.file)
-
   let uploadImage;
 
   if (req.file) {
@@ -109,8 +107,6 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     );
   }
 
-  console.log(uploadImage);
-
   const userAvatarUpdate = await model.UserModel.findByIdAndUpdate(
     req.user._id,
     {
@@ -123,8 +119,6 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     },
     { new: true },
   );
-  console.log(userAvatarUpdate)
-
   return new ApiResponse(StatusCodes.OK, "users fetched successfully", { user:userAvatarUpdate });
 });
 
