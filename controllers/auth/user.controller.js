@@ -90,6 +90,10 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
   if (!user) throw new ApiError(StatusCodes.NOT_FOUND, "user not found", []);
 
+  if (!req.file) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "user avatar image is required");
+  }
+
   let uploadImage;
 
   if (req.file) {

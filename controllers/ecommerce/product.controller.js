@@ -149,10 +149,7 @@ const updateProduct = asyncHandler(
         await deleteFileFromCloudinary(product.imageSrc?.public_id);
       }
 
-      uploadImage = await uploadFileToCloudinary(
-        req?.files?.imageSrc?.buffer,
-        process.env.CLOUDINARY_FOLDER,
-      );
+      uploadImage = await uploadFileToCloudinary(req?.file?.buffer, process.env.CLOUDINARY_FOLDER);
     }
 
     const updatedProduct = await model.ProductModel.findByIdAndUpdate(
@@ -195,7 +192,10 @@ const deleteProduct = asyncHandler(
 
     if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
 
-    await deleteFileFromCloudinary(product?.imageSrc?.public_id);
+    if (product?.imageSrc?.public_id !== null) {
+      await deleteFileFromCloudinary(product?.imageSrc?.public_id);
+    }
+
     await model.ProductModel.findOneAndDelete({ _id: productId });
 
     return new ApiResponse(StatusCodes.OK, "product deleted successfully", {});
