@@ -21,12 +21,17 @@ const createNewProduct = asyncHandler(
   async (req, res) => {
     const { name, price, description, category, stock, featured } = req.body;
 
-    const productCategory = await model.CategoryModel.findById(category);
+    const normalizedCategoryName = category.trim().toLowerCase();
+
+    const productCategory = await model.CategoryModel.findOne({ name: normalizedCategoryName });
 
     if (!productCategory) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "product category does not exists", []);
+      productCategory = await model.CategoryModel.create({
+        name: normalizedCategoryName,
+        owner: req.user._id,
+      });
     }
-    
+
     if (!req.file) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "no image upload", []);
     }
@@ -47,13 +52,12 @@ const createNewProduct = asyncHandler(
       name,
       price,
       description,
-      category,
+      category: productCategory?._id,
       featured,
       imageSrc: {
         url: uploadImage?.secure_url,
         public_id: uploadImage?.public_id,
       },
-      category: productCategory,
       stock,
     });
 
