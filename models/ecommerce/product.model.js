@@ -31,7 +31,7 @@ const ProductSchema = new Schema(
         url: String,
         public_id: String,
       },
-      required: true,
+      default: { url: null, public_id: null }, // Ensure the default is an object
     },
     subImgs: {
       type: [
