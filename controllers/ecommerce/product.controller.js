@@ -29,7 +29,7 @@ const createNewProduct = asyncHandler(
 
     let uploadImage;
 
-    if (!req.files || !req.files.imageSrc.length) {
+    if (!req.files || !req.files.imageSrc) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "no images upload", []);
     }
 
