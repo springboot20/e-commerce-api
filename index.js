@@ -30,7 +30,7 @@ app.use("/api/v1/addresses", routers.addressesRouter);
 app.use("/api/v1/carts", routers.cartsRouter);
 
 app.use((req, res, next) => {
-  const allowedOrigins = [process.env.CORS_ORIGIN];
+  const allowedOrigins = ["https://cv-ecommerce-project.vercel.app/"];
   const origin = req.headers.origin;
 
   if (allowedOrigins.indexOf(origin) != -1) {
