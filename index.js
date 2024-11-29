@@ -34,6 +34,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+app.options("*", cors()); // Handle preflight requests for all routes
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
