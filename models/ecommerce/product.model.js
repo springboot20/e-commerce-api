@@ -31,10 +31,16 @@ const ProductSchema = new Schema(
         url: String,
         public_id: String,
       },
-      default: {
-        url: null,
-        public_id: null,
-      },
+      required: true,
+    },
+    subImgs: {
+      type: [
+        {
+          url: String,
+          public_id: String,
+        },
+      ],
+      default: [],
     },
     category: {
       type: Schema.Types.ObjectId,

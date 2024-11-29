@@ -33,7 +33,11 @@ const createNewProduct = asyncHandler(
       throw new ApiError(StatusCodes.BAD_REQUEST, "no image upload", []);
     }
 
-    if (req?.files) {
+    // if(req?.files){
+
+    // }
+
+    if (req?.file) {
       uploadImage = await uploadFileToCloudinary(
         req.files?.imageSrc?.buffer,
         `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
