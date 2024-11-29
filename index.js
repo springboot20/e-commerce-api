@@ -32,7 +32,10 @@ app.use("/api/v1/carts", routers.cartsRouter);
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.header("Access-Control-Allow-Headers", "Origin, Accept, X-Requested-With, Content-Type, Authorization");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin,Content-Type,Authorization,Accept,X-Requested-With,Cookie,User-Agent,Host,Referer",
+  );
   next();
 });
 
