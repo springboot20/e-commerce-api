@@ -159,7 +159,7 @@ const updateProduct = asyncHandler(
 
         uploadImage = await uploadFileToCloudinary(
           req?.file?.buffer,
-          process.env.CLOUDINARY_FOLDER,
+          `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
         );
       }
 
