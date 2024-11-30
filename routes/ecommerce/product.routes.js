@@ -25,8 +25,8 @@ router
   .route("/:productId")
   .get(verifyJWT, controllers.productController.getProduct)
   .patch(
-    checkPermissions([RoleEnums.ADMIN]),
     verifyJWT,
+    checkPermissions([RoleEnums.ADMIN]),
     upload.single("imageSrc"),
     upload.fields([
       {
