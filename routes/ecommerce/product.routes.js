@@ -10,12 +10,6 @@ router
   .get(controllers.productController.getAllProducts)
   .post(
     upload.single("imageSrc"),
-    // upload.fields([
-    //   {
-    //     name: "subImgs",
-    //     maxCount: MAX_SUB_IMAGES_TO_BE_UPLOAD,
-    //   },
-    // ]),
     verifyJWT,
     checkPermissions([RoleEnums.ADMIN]),
     controllers.productController.createNewProduct,
@@ -28,12 +22,6 @@ router
     verifyJWT,
     checkPermissions([RoleEnums.ADMIN]),
     upload.single("imageSrc"),
-    upload.fields([
-      {
-        name: "subImgs",
-        maxCount: MAX_SUB_IMAGES_TO_BE_UPLOAD,
-      },
-    ]),
     controllers.productController.updateProduct,
   )
   .delete(
