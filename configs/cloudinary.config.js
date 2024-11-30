@@ -37,22 +37,15 @@ const uploadFileToCloudinary = async (buffer, folder) => {
  * @param {string} type
  *
  */
-const deleteFileFromCloudinary = async (public_id, resource_type = "image", type = "image") => {
+const deleteFileFromCloudinary = async (public_id) => {
   try {
-    const deletedResource = await v2.uploader.destroy(
-      public_id,
-      {
-        resource_type,
-        type,
-      },
-      (error, result) => {
-        if (error) {
-          new ApiError(StatusCodes.BAD_REQUEST, error.message);
-        } else {
-          return result;
-        }
-      },
-    );
+    const deletedResource = await v2.uploader.destroy(public_id, (error, result) => {
+      if (error) {
+        new ApiError(StatusCodes.BAD_REQUEST, error.message);
+      } else {
+        return result;
+      }
+    });
 
     if (deletedResource.result === "not found") {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Public ID not found. Provide a valid publicId.");
