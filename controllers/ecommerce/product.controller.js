@@ -23,7 +23,7 @@ const createNewProduct = asyncHandler(
 
     const normalizedCategoryName = category.trim().toLowerCase();
 
-    const productCategory = await model.CategoryModel.findOne({ name: normalizedCategoryName });
+    let productCategory = await model.CategoryModel.findOne({ name: normalizedCategoryName });
 
     if (!productCategory) {
       productCategory = await model.CategoryModel.create({
