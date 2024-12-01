@@ -33,8 +33,6 @@ const uploadFileToCloudinary = async (buffer, folder) => {
 /**
  *
  * @param {string} public_id
- * @param {string} resource_type
- * @param {string} type
  *
  */
 const deleteFileFromCloudinary = async (public_id) => {
