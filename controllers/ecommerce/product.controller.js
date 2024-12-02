@@ -203,7 +203,7 @@ const updateProduct = asyncHandler(
             stock,
           },
         },
-        { new: true },
+        { new: true, session },
       );
       // Commit the transaction
       await session.commitTransaction();
