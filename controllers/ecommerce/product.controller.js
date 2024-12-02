@@ -196,7 +196,7 @@ const updateProduct = asyncHandler(
         },
       },
       { new: true },
-    );
+    ).populate("category");
 
     // Respond with the updated product
     return new ApiResponse(StatusCodes.OK, "Product updated successfully", {
