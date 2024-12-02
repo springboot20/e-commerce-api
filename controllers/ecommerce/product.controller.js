@@ -178,8 +178,6 @@ const updateProduct = asyncHandler(
       }
     }
 
-    console.log(uploadImage);
-
     const updatedProduct = await model.ProductModel.findByIdAndUpdate(
       productId,
       {
