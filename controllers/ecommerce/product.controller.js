@@ -147,6 +147,7 @@ const updateProduct = asyncHandler(
     if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
 
     let uploadImage;
+    console.log(req.file);
 
     if (req.file) {
       if (product.imageSrc?.public_id) {
@@ -173,11 +174,11 @@ const updateProduct = asyncHandler(
 
         categoryId = existingCategory?._id;
       } else {
-       categoryId = existingCategory?._id;
+        categoryId = existingCategory?._id;
       }
     }
 
-    console.log(uploadImage)
+    console.log(uploadImage);
 
     const updatedProduct = await model.ProductModel.findByIdAndUpdate(
       productId,

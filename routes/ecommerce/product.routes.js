@@ -19,9 +19,9 @@ router
   .route("/:productId")
   .get(verifyJWT, controllers.productController.getProduct)
   .patch(
+    upload.single("imageSrc"),
     verifyJWT,
     checkPermissions([RoleEnums.ADMIN]),
-    upload.single("imageSrc"),
     controllers.productController.updateProduct,
   )
   .delete(
