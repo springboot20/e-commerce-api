@@ -142,83 +142,65 @@ const updateProduct = asyncHandler(
     const { productId } = req.params;
     const { name, price, description, category, stock, featured } = req.body;
 
-    const session = await model.ProductModel.startSession();
-    session.startTransaction();
+    const product = await model.ProductModel.findById(productId);
 
-    try {
-      const product = await model.ProductModel.findById(productId).session(session);
+    if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
 
-      if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
+    let uploadImage;
 
-      let uploadImage;
-
-      if (req.file) {
-        if (product.imageSrc?.public_id) {
-          await deleteFileFromCloudinary(product.imageSrc?.public_id);
-        }
-
-        uploadImage = await uploadFileToCloudinary(
-          req?.file?.buffer,
-          `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
-        );
+    if (req.file) {
+      if (product.imageSrc?.public_id) {
+        await deleteFileFromCloudinary(product.imageSrc?.public_id);
       }
 
-      let categoryId = product.category;
-
-      if (category) {
-        const normalizedCategoryName = category.trim().toLowerCase();
-
-        let existingCategory = await model.CategoryModel.findOne({ name: normalizedCategoryName });
-        if (!existingCategory) {
-          existingCategory = model.CategoryModel.create(
-            [
-              {
-                name: normalizedCategoryName,
-                owner: req.user?._id,
-              },
-            ],
-            { session },
-          );
-
-          categoryId = existingCategory[0]?._id;
-        } else {
-          categoryId = existingCategory?._id;
-        }
-      }
-
-      const updatedProduct = await model.ProductModel.findByIdAndUpdate(
-        productId,
-        {
-          $set: {
-            user: req.user._id,
-            name,
-            price,
-            description,
-            featured,
-            imageSrc: {
-              url: uploadImage?.secure_url,
-              public_id: uploadImage?.public_id,
-            },
-            category: categoryId,
-            stock,
-          },
-        },
-        { new: true, session },
+      uploadImage = await uploadFileToCloudinary(
+        req?.file?.buffer,
+        `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
       );
-      // Commit the transaction
-      await session.commitTransaction();
-      session.endSession();
-
-      // Respond with the updated product
-      return new ApiResponse(StatusCodes.OK, "Product updated successfully", {
-        product: updatedProduct,
-      });
-    } catch (error) {
-      // Rollback the transaction in case of any error
-      await session.abortTransaction();
-      session.endSession();
-      throw error; // Re-throw error to be handled by error middleware
     }
+
+    let categoryId = product.category;
+
+    if (category) {
+      const normalizedCategoryName = category.trim().toLowerCase();
+
+      let existingCategory = await model.CategoryModel.findOne({ name: normalizedCategoryName });
+      if (!existingCategory) {
+        existingCategory = model.CategoryModel.create({
+          name: normalizedCategoryName,
+          owner: req.user?._id,
+        });
+
+        categoryId = existingCategory?._id;
+      } else {
+       categoryId = existingCategory?._id;
+      }
+    }
+
+    const updatedProduct = await model.ProductModel.findByIdAndUpdate(
+      productId,
+      {
+        $set: {
+          user: req.user._id,
+          name,
+          price,
+          description,
+          featured,
+          imageSrc: {
+            url: uploadImage?.secure_url,
+            public_id: uploadImage?.public_id,
+          },
+          category: categoryId,
+          stock,
+        },
+      },
+      { new: true },
+    );
+
+    // Respond with the updated product
+    return new ApiResponse(StatusCodes.OK, "Product updated successfully", {
+      product: updatedProduct,
+    });
   },
 );
 
