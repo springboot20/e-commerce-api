@@ -147,7 +147,16 @@ const updateProduct = asyncHandler(
     if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
 
     let uploadImage;
-    console.log(req.file);
+
+    let updatedFields = {
+      user: req.user._id,
+      name,
+      price,
+      description,
+      featured,
+      category: product?.category,
+      stock,
+    };
 
     if (req.file) {
       if (product.imageSrc?.public_id) {
@@ -158,9 +167,12 @@ const updateProduct = asyncHandler(
         req?.file?.buffer,
         `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
       );
-    }
 
-    let categoryId = product.category;
+      updatedFields.imageSrc = {
+        url: uploadImage?.secure_url,
+        public_id: uploadImage?.public_id,
+      };
+    }
 
     if (category) {
       const normalizedCategoryName = category.trim().toLowerCase();
@@ -172,28 +184,16 @@ const updateProduct = asyncHandler(
           owner: req.user?._id,
         });
 
-        categoryId = existingCategory?._id;
+        updatedFields.category = existingCategory?._id;
       } else {
-        categoryId = existingCategory?._id;
+        updatedFields.category = existingCategory?._id;
       }
     }
 
     const updatedProduct = await model.ProductModel.findByIdAndUpdate(
       productId,
       {
-        $set: {
-          user: req.user._id,
-          name,
-          price,
-          description,
-          featured,
-          imageSrc: {
-            url: uploadImage?.secure_url,
-            public_id: uploadImage?.public_id,
-          },
-          category: categoryId,
-          stock,
-        },
+        $set: updatedFields,
       },
       { new: true },
     ).populate("category");
