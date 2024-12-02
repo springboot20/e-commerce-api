@@ -25,7 +25,7 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
 
   try {
     const response = await axios.post(
-      "https://api.paystack.co/transaction/initialize", 
+      "https://api.paystack.co/transaction/initialize",
       {
         email: email,
         amount: (totalPrice * 100).toFixed(3), // Paystack amount is in kobo
@@ -51,55 +51,57 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
 });
 
 const orderFulfillmentHelper = asyncHandler(async (req, res) => {
-  try {
-    // Parse the request body as JSON
-    const body = flatted.stringify(req.body);
-    const jsonData = flatted.parse(body);
+  if (!req.body) {
+    return false;
+  }
 
+  let isValidPaystackEvent = false;
+  let signature = req.headers["x-paystack-signature"];
+
+  try {
     const hash = crypto
       .createHmac("sha512", process.env.PAYSTACK_SECRET)
-      .update(body, "utf-8")
+      .update(flatted.stringify(req.body))
       .digest("hex");
 
-    if (hash == req.headers["x-paystack-signature"]) {
-      const event = jsonData.event;
-
-      if (event === "charge.success") {
-        const cart = await CartModel.findOne({ owner: req.user._id });
-        const userCart = await getCart(req.user._id);
-
-        const productBulkUpdate = userCart.items.map((item) => {
-          return {
-            updateOne: {
-              filter: { _id: item.productId },
-              update: { $inc: { stock: -item.quantity } },
-            },
-          };
-        });
-
-        await OrderModel.create({
-          customer: req.user._id,
-          items: cart.items,
-          orderPrice: jsonData.data.requested_amount ?? 0,
-          paymentProvider: PaymentMethods.PAYSTACK,
-          paymentId: jsonData.data.reference,
-        });
-
-        cart.items = [];
-        await ProductModel.bulkWrite(productBulkUpdate, { skipValidation: true });
-        await cart.save({ validateBeforeSave: false });
-
-        return new ApiResponse(StatusCodes.OK, "order created successfully", {});
-      }
-    } else {
-      // Invalid signature, ignore the webhook event
-      console.log("Invalid Paystack signature");
-      throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid signature");
-    }
-  } catch (error) {
-    console.error("Error processing Paystack webhook:", error);
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Internal Server Error", []);
+    isValidPaystackEvent =
+      hash && signature && crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(signature));
+  } catch (e) {
+    console.error(e);
   }
+
+  if (!isValidPaystackEvent) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid signature", []);
+  }
+
+  let event = req.body;
+
+  const cart = await CartModel.findOne({ owner: req.user._id });
+  const userCart = await getCart(req.user._id);
+
+  const productBulkUpdate = userCart.items.map((item) => {
+    return {
+      updateOne: {
+        filter: { _id: item.productId },
+        update: { $inc: { stock: -item.quantity } },
+      },
+    };
+  });
+
+  await OrderModel.create({
+    customer: req.user._id,
+    items: cart.items,
+    orderPrice: event.data.amount ?? 0,
+    paymentProvider: PaymentMethods.PAYSTACK,
+    paymentId: event.data.reference,
+    orderStatus: OrderStatuses.COMPLETED,
+  });
+
+  cart.items = [];
+  await ProductModel.bulkWrite(productBulkUpdate, { skipValidation: true });
+  await cart.save({ validateBeforeSave: false });
+
+  return new ApiResponse(StatusCodes.OK, "order created successfully", {});
 });
 
 const updateOrderStatus = asyncHandler(async (req, res) => {
