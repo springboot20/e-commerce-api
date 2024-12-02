@@ -25,7 +25,7 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
 
   try {
     const response = await axios.post(
-      "https://api.paystack.co/transaction/initialize",
+      "https://api.paystack.co/transaction/initialize", 
       {
         email: email,
         amount: (totalPrice * 100).toFixed(3), // Paystack amount is in kobo
