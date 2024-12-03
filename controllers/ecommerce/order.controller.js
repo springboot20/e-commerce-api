@@ -12,9 +12,6 @@ async function initializePaystackPayment({ email, amount, cartItems }) {
     let orderConfig = {
       email: email,
       amount: amount * 100, // Paystack amount is in kobo
-      metadata: {
-        user_cart: cartItems,
-      },
       callback_url: `${process.env.PAYSTACK_CALLBACK_URL}`,
     };
 
