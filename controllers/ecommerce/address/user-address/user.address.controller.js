@@ -2,7 +2,7 @@ const model = require("../../../../models/index");
 const { StatusCodes } = require("http-status-codes");
 const { asyncHandler } = require("../../../../utils/asyncHandler");
 const { ApiError } = require("../../../../utils/api.error");
-const { ApiResponse } = require("../../utils/../../api.response");
+const { ApiResponse } = require("../../../../utils/api.response");
 
 const getUserAddress = asyncHandler(async (req, res) => {
   const address = await model.AddressModel.findOne({

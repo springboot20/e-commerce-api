@@ -15,4 +15,4 @@ const deleteCategory = asyncHandler(async (req, res) => {
   return new ApiResponse(StatusCodes.OK, "catergory deleted successfully");
 });
 
-module.exports = deleteeCategory
+module.exports = deleteCategory

@@ -1,8 +1,8 @@
 const express = require("express");
-const controllers = require("../../controllers/index.controller");
-const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middleware");
-const { RoleEnums } = require("../../constants");
-const { upload } = require("../../middlewares/upload.middleware");
+const controllers = require("../../../controllers/index.controller");
+const { verifyJWT, checkPermissions } = require("../../../middlewares/auth.middleware");
+const { RoleEnums } = require("../../../constants");
+const { upload } = require("../../../middlewares/upload.middleware");
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ router
   .post(
     upload.single("imageSrc"),
     verifyJWT,
-    checkPermissions([RoleEnums.ADMIN]),
+    checkPermissions([RoleEnums.ADMIN, RoleEnums.MODERATOR]),
     controllers.productController.createNewProduct,
   );
 
@@ -22,12 +22,12 @@ router
   .patch(
     upload.single("imageSrc"),
     verifyJWT,
-    checkPermissions([RoleEnums.ADMIN]),
+    checkPermissions([RoleEnums.ADMIN, RoleEnums.MODERATOR]),
     controllers.productController.updateProduct,
   )
   .delete(
     verifyJWT,
-    checkPermissions([RoleEnums.ADMIN]),
+    checkPermissions([RoleEnums.ADMIN, RoleEnums.MODERATOR]),
     controllers.productController.deleteProduct,
   );
 

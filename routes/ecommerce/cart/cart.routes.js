@@ -1,17 +1,21 @@
 const express = require("express");
-const controllers = require("../../controllers/index.controller");
+const controllers = require("../../../controllers/index.controller");
 const router = express.Router();
-const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middleware");
-const { RoleEnums } = require("../../constants");
+const { verifyJWT, checkPermissions } = require("../../../middlewares/auth.middleware");
+const { RoleEnums } = require("../../../constants");
 
 router
   .route("/")
-  .get(verifyJWT, controllers.cartController.getUserCart)   
-  .patch(verifyJWT, controllers.cartController.clearCart);
+  .get(verifyJWT, checkPermissions(RoleEnums.USER), controllers.cartController.getUserCart)
+  .patch(verifyJWT, checkPermissions(RoleEnums.USER), controllers.cartController.clearCart);
 
 router
   .route("/:productId")
-  .post(verifyJWT, controllers.cartController.addItemToCart)
-  .patch(verifyJWT, controllers.cartController.removeItemFromCart);
+  .post(verifyJWT, checkPermissions(RoleEnums.USER), controllers.cartController.addItemToCart)
+  .patch(
+    verifyJWT,
+    checkPermissions(RoleEnums.USER),
+    controllers.cartController.removeItemFromCart,
+  );
 
 module.exports = router;

@@ -12,8 +12,20 @@ router
 
 router
   .route("/:categoryId")
-  .get(verifyJWT, checkPermissions(RoleEnums.ADMIN), categoryController.getCategoryById)
-  .patch(verifyJWT, checkPermissions(RoleEnums.ADMIN), categoryController.updateCategory)
-  .delete(verifyJWT, checkPermissions(RoleEnums.ADMIN), categoryController.deleteCategory);
+  .get(
+    verifyJWT,
+    checkPermissions(RoleEnums.ADMIN, RoleEnums.MODERATOR),
+    categoryController.getCategoryById,
+  )
+  .patch(
+    verifyJWT,
+    checkPermissions(RoleEnums.ADMIN, RoleEnums.MODERATOR),
+    categoryController.updateCategory,
+  )
+  .delete(
+    verifyJWT,
+    checkPermissions(RoleEnums.ADMIN, RoleEnums.MODERATOR),
+    categoryController.deleteCategory,
+  );
 
 module.exports = router;
