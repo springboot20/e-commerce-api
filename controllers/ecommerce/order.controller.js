@@ -109,9 +109,7 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
 
 const orderFulfillmentHelper = asyncHandler(async (req, res) => {
   const { reference } = req.query;
-  const order = await OrderModel.findOne({ payementId: reference });
-
-  console.log(order, reference)
+  const order = await OrderModel.findOne({ paymentId: reference });
 
   if (!order) {
     throw new ApiError(StatusCodes.NOT_FOUND, "no order found");
