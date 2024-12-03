@@ -31,6 +31,7 @@ app.use("/api/v1/orders", routers.ordersRouter);
 app.use("/api/v1/categories", routers.categoryRouter);
 app.use("/api/v1/addresses", routers.addressesRouter);
 app.use("/api/v1/carts", routers.cartsRouter);
+app.use("/api/v1/statistics", routers.statisticsRouter);
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
