@@ -47,14 +47,15 @@ router
 /**
  * AUTHENTICATED USER ROUTES
  */
+router.route("/change-password").post(verifyJWT, controllers.userController.changeCurrentPassword);
 
 router.route("/current-user/:userId").get(verifyJWT, controllers.userController.getCurrentUser);
 
-router
-  .route("/reset-forgotten-password")
-  .patch(verifyJWT, controllers.authController.resetForgottenPassword);
-
 router.route("/logout").post(verifyJWT, controllers.authController.logOut);
+
+router
+  .route("/resend-email-verification")
+  .post(controllers.emailController.resendEmailVerification);
 
 router
   .route("/upload-avatar")

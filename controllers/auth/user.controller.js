@@ -72,9 +72,7 @@ const getVerifiedUsers = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  const { userId } = req.params;
-
-  const user = await model.UserModel.findById(userId);
+  const user = await model.UserModel.findById(req?.user?._id);
 
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Unable to find user");
@@ -97,7 +95,6 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   let uploadImage;
 
   if (req.file) {
-
     if (user?.avatar?.public_id !== null) {
       await deleteFileFromCloudinary(user?.avatar?.public_id);
     }
@@ -119,7 +116,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     },
     { new: true },
   );
-  return new ApiResponse(StatusCodes.OK, "users fetched successfully", { user:userAvatarUpdate });
+  return new ApiResponse(StatusCodes.OK, "users fetched successfully", { user: userAvatarUpdate });
 });
 
 const updateUser = asyncHandler(async (req, res) => {
@@ -161,6 +158,26 @@ const deleteUser = asyncHandler(async (req, res) => {
   return new ApiResponse(StatusCodes.OK, "user deleted successfully", {});
 });
 
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  const user = await model.UserModel.findById(req.user?._id);
+
+  // check the old password
+  const isPasswordValid = await user.matchPasswords(oldPassword);
+
+  if (!isPasswordValid) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid old password");
+  }
+
+  // assign new password in plain text
+  // We have a pre save method attached to user schema which automatically hashes the password whenever added/modified
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return new ApiResponse(StatusCodes.OK, "Password changed successfully", {});
+});
+
 module.exports = {
   getCurrentUser,
   getUsers,
@@ -168,4 +185,5 @@ module.exports = {
   deleteUser,
   updateUserAvatar,
   getVerifiedUsers,
+  changeCurrentPassword,
 };
