@@ -9,7 +9,7 @@ router
   .post(verifyJWT, controllers.orderController.generatePaystackOrder);
 
 router
-  .route("/provider/paystack/webhook")
+  .route("/provider/paystack/verify")
   .post(verifyJWT, controllers.orderController.orderFulfillmentHelper);
 
 router

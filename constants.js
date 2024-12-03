@@ -22,6 +22,10 @@ const PaymentMethods = {
 
 const AvailablePaymentMethods = Object.values(PaymentMethods);
 
+const paystackStatus = {
+  success: "success",
+};
+
 const RoleEnums = {
   USER: "USER",
   ADMIN: "ADMIN",
@@ -40,6 +44,7 @@ const AvailableLoginType = Object.values(LoginType);
 const MAX_SUB_IMAGES_TO_BE_UPLOAD = 10;
 
 module.exports = {
+  paystackStatus,
   AvailableOrderStatusEnums,
   OrderStatuses,
   PaymentMethods,
