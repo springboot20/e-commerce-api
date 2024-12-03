@@ -1,9 +1,8 @@
-// const fetch = require("node-fetch");
 const { PaymentMethods, OrderStatuses } = require("../../constants.js");
 const { ApiError } = require("../../utils/api.error");
 const { StatusCodes } = require("http-status-codes");
 const { asyncHandler } = require("../../utils/asyncHandler");
-const { CartModel, OrderModel, ProductModel } = require("../../models");
+const { CartModel, OrderModel, ProductModel, UserModel } = require("../../models");
 const { getCart } = require("./cart.controller");
 const { ApiResponse } = require("../../utils/api.response.js");
 const axios = require("axios");
@@ -11,9 +10,8 @@ const crypto = require("crypto");
 const flatted = require("flatted");
 
 const generatePaystackOrder = asyncHandler(async (req, res) => {
-  const { email } = req.body;
-
   const cart = await CartModel.findOne({ owner: req.user._id });
+  const user = await UserModel.findById(req.user._id);
 
   if (!cart || !cart.items?.length) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "cart is empty", []);
@@ -25,7 +23,7 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
 
   try {
     let orderConfig = {
-      email: email,
+      email: user?.email,
       amount: totalPrice * 100, // Paystack amount is in kobo
       metadata: {
         user_cart: cartItems,

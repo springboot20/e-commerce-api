@@ -8,9 +8,9 @@ router
   .route("/provider/paystack")
   .post(verifyJWT, controllers.orderController.generatePaystackOrder);
 
-// router
-//   .route("/provider/paystack/webhook")
-//   .post(verifyJWT, controllers.orderController.orderFulfillmentHelper);
+router
+  .route("/provider/paystack/webhook")
+  .post(verifyJWT, controllers.orderController.orderFulfillmentHelper);
 
 router
   .route("/status/:orderId")
