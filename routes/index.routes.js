@@ -1,9 +1,9 @@
-const usersRouter = require('./auth/user.routes');
-const productsRouter = require('./ecommerce/product.routes');
-const categoryRouter = require('./ecommerce/category.routes');
-const ordersRouter = require('./ecommerce/order.routes');
-const cartsRouter = require('./ecommerce/cart.routes');
-const addressesRouter = require('./ecommerce/address.routes');
+const usersRouter = require("./auth/user.routes");
+const productsRouter = require("./ecommerce/product/product.routes");
+const categoryRouter = require("./ecommerce/category/category.routes");
+const ordersRouter = require("./ecommerce/order/order.routes");
+const cartsRouter = require("./ecommerce/cart/cart.routes");
+const addressesRouter = require("./ecommerce/address/address.routes");
 
 module.exports = {
   usersRouter,
@@ -11,5 +11,5 @@ module.exports = {
   ordersRouter,
   categoryRouter,
   cartsRouter,
-  addressesRouter
+  addressesRouter,
 };
