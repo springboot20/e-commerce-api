@@ -8,7 +8,7 @@ const { ApiResponse } = require("../../utils/api.response.js");
 const axios = require("axios");
 const { removeCircularReferences } = require("../../helpers.js");
 
-async function initializePaystackPayment({ email, amount, cartItems }) {
+async function initializePaystackPayment({ email, amount }) {
   try {
     let orderConfig = {
       email: email,
@@ -83,7 +83,7 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
 
   let order = undefined;
 
-  if (response.status) {
+  if (response.status === true) {
     order = await OrderModel.create({
       customer: req.user?._id,
       address: address?._id,
@@ -110,6 +110,8 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
 const orderFulfillmentHelper = asyncHandler(async (req, res) => {
   const { reference } = req.query;
   const order = await OrderModel.findOne({ payementId: reference });
+
+  console.log(order, reference)
 
   if (!order) {
     throw new ApiError(StatusCodes.NOT_FOUND, "no order found");
