@@ -147,7 +147,7 @@ const orderFulfillmentHelper = asyncHandler(async (req, res) => {
   await cart.save({ validateBeforeSave: false });
   await order.save({ validateBeforeSave: false });
 
-  return new ApiResponse(StatusCodes.OK, "order created successfully", {});
+  return JSON.stringify(new ApiResponse(StatusCodes.OK, "order created successfully", {}));
 });
 
 const updateOrderStatus = asyncHandler(async (req, res) => {
