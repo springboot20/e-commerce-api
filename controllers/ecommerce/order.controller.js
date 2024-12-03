@@ -152,7 +152,10 @@ const orderFulfillmentHelper = asyncHandler(async (req, res) => {
   await order.save({ validateBeforeSave: false });
 
   const responseData = removeCircularReferences(
-    new ApiResponse(StatusCodes.OK, "order created successfully", {}),
+    new ApiResponse(StatusCodes.OK, "order created successfully", {
+      cart: userCart,
+      order,
+    }),
   );
 
   return responseData;
