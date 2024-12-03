@@ -1,8 +1,8 @@
 const express = require("express");
-const controllers = require("../../../controllers/index.controller");
-const { verifyJWT, checkPermissions } = require("../../../middlewares/auth.middleware");
-const { RoleEnums } = require("../../../constants");
-const { upload } = require("../../../middlewares/upload.middleware");
+const controllers = require("../../controllers/index.controller");
+const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middleware");
+const { RoleEnums } = require("../../constants");
+const { upload } = require("../../middlewares/upload.middleware");
 
 const router = express.Router();
 
