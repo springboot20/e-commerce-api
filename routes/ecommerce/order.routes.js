@@ -9,8 +9,8 @@ router
   .post(verifyJWT, controllers.orderController.generatePaystackOrder);
 
 router
-  .route("/provider/paystack/verify")
-  .post(verifyJWT, controllers.orderController.orderFulfillmentHelper);
+  .route("/provider/paystack/verify-callback")
+  .get(verifyJWT, controllers.orderController.orderFulfillmentHelper);
 
 router
   .route("/status/:orderId")
