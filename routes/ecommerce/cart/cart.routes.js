@@ -1,5 +1,5 @@
 const express = require("express");
-const controllers = require("../../controllers/index");
+const controllers = require("../../controllers/index.controller");
 const router = express.Router();
 const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middleware");
 const { RoleEnums } = require("../../constants");

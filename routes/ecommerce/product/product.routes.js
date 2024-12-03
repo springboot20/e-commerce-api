@@ -1,9 +1,10 @@
 const express = require("express");
-const controllers = require("../../controllers/index");
+const controllers = require("../../../controllers/index.controller");
+const { verifyJWT, checkPermissions } = require("../../../middlewares/auth.middleware");
+const { RoleEnums } = require("../../../constants");
+const { upload } = require("../../../middlewares/upload.middleware");
+
 const router = express.Router();
-const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middleware");
-const { RoleEnums, MAX_SUB_IMAGES_TO_BE_UPLOAD } = require("../../constants");
-const { upload } = require("../../middlewares/upload.middleware");
 
 router
   .route("/")

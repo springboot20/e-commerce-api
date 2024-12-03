@@ -1,8 +1,9 @@
 const express = require("express");
+const controllers = require("../../../controllers/index.controller");
+const { verifyJWT, checkPermissions } = require("../../../middlewares/auth.middleware");
+const { RoleEnums } = require("../../../constants");
+
 const router = express.Router();
-const controllers = require("../../controllers/index");
-const { verifyJWT, checkPermissions } = require("../../middlewares/auth.middleware");
-const { RoleEnums } = require("../../constants");
 
 router
   .route("/provider/paystack")
