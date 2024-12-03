@@ -1,9 +1,9 @@
-const { asyncHandler } = require("../../utils/asyncHandler.js");
-const model = require("../../models/index");
+const { asyncHandler } = require("../../../utils/asyncHandler.js");
+const model = require("../../../models/index");
 const { default: mongoose } = require("mongoose");
-const { ApiResponse } = require("../../utils/api.response.js");
+const { ApiResponse } = require("../../../utils/api.response.js");
 const { StatusCodes } = require("http-status-codes");
-const { ApiError } = require("../../utils/api.error.js");
+const { ApiError } = require("../../../utils/api.error.js");
 
 const getCart = async (userId) => {
   const userCart = await model.CartModel.aggregate([

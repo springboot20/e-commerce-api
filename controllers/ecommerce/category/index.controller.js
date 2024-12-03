@@ -10,4 +10,5 @@ module.exports = {
   updateCategory,
   deleteCategory,
   getCategoryById,
+  getAllCategory
 };
