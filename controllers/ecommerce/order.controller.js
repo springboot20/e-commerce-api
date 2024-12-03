@@ -6,6 +6,7 @@ const { CartModel, OrderModel, ProductModel, UserModel, AddressModel } = require
 const { getCart } = require("./cart.controller");
 const { ApiResponse } = require("../../utils/api.response.js");
 const axios = require("axios");
+const { removeCircularReferences } = require("../../helpers.js");
 
 async function initializePaystackPayment({ email, amount, cartItems }) {
   try {
@@ -94,13 +95,16 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  if (!order)
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "error while placing order");
+  if (!order) throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "error while placing order");
 
-  return new ApiResponse(res, StatusCodes.CREATED, response?.message, {
-    order,
-    url: response.data?.authorization_url,
-  });
+  const responseData = removeCircularReferences(
+    new ApiResponse(res, StatusCodes.CREATED, response?.message, {
+      order,
+      url: response.data?.authorization_url,
+    }),
+  );
+
+  return responseData;
 });
 
 const orderFulfillmentHelper = asyncHandler(async (req, res) => {
@@ -147,7 +151,11 @@ const orderFulfillmentHelper = asyncHandler(async (req, res) => {
   await cart.save({ validateBeforeSave: false });
   await order.save({ validateBeforeSave: false });
 
-  return JSON.stringify(new ApiResponse(StatusCodes.OK, "order created successfully", {}));
+  const responseData = removeCircularReferences(
+    new ApiResponse(StatusCodes.OK, "order created successfully", {}),
+  );
+
+  return responseData;
 });
 
 const updateOrderStatus = asyncHandler(async (req, res) => {

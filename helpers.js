@@ -16,6 +16,22 @@ const getMognogoosePagination = ({ limit = 10, page = 1, customLabels }) => {
   };
 };
 
+function removeCircularReferences(obj) {
+  const seen = new WeakSet();
+  return JSON.parse(
+    JSON.stringify(obj, (key, value) => {
+      if (typeof value === "object" && value !== null) {
+        if (seen.has(value)) {
+          return;
+        }
+        seen.add(value);
+      }
+      return value;
+    }),
+  );
+}
+
 module.exports = {
   getMognogoosePagination,
+  removeCircularReferences,
 };
