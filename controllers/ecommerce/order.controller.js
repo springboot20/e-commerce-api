@@ -13,7 +13,7 @@ async function initializePaystackPayment({ email, amount }) {
     let orderConfig = {
       email: email,
       amount: amount * 100, // Paystack amount is in kobo
-      callback_url: `${process.env.PAYSTACK_CALLBACK_URL}`,
+      // callback_url: `${process.env.PAYSTACK_CALLBACK_URL}`,
     };
 
     const payload = JSON.stringify(orderConfig);
