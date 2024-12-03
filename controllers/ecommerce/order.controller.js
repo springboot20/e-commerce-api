@@ -98,7 +98,7 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
   if (!order) throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "error while placing order");
 
   const responseData = removeCircularReferences(
-    new ApiResponse(res, StatusCodes.CREATED, response?.message, {
+    new ApiResponse(StatusCodes.CREATED, response?.message, {
       order,
       url: response.data?.authorization_url,
     }),
