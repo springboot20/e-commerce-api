@@ -24,22 +24,22 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
   const totalPrice = userCart.totalCart;
 
   try {
-    const response = await axios.post(
-      "https://api.paystack.co/transaction/initialize",
-      {
-        email: email,
-        amount: (totalPrice * 100).toFixed(3), // Paystack amount is in kobo
-        metadata: {
-          user_cart: cartItems,
-        },
+    let orderConfig = {
+      email: email,
+      amount: totalPrice * 100, // Paystack amount is in kobo
+      metadata: {
+        user_cart: cartItems,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET}`,
-          "Content-Type": "application/json",
-        },
+    };
+
+    const payload = flatted.stringify(orderConfig);
+
+    const response = await axios.post("https://api.paystack.co/transaction/initialize", payload, {
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET}`,
+        "Content-Type": "application/json",
       },
-    );
+    });
 
     const { data } = response;
 
@@ -76,32 +76,36 @@ const orderFulfillmentHelper = asyncHandler(async (req, res) => {
 
   let event = req.body;
 
-  const cart = await CartModel.findOne({ owner: req.user._id });
-  const userCart = await getCart(req.user._id);
+  try {
+    const cart = await CartModel.findOne({ owner: req.user._id });
+    const userCart = await getCart(req.user._id);
 
-  const productBulkUpdate = userCart.items.map((item) => {
-    return {
-      updateOne: {
-        filter: { _id: item.productId },
-        update: { $inc: { stock: -item.quantity } },
-      },
-    };
-  });
+    const productBulkUpdate = userCart.items.map((item) => {
+      return {
+        updateOne: {
+          filter: { _id: item.productId },
+          update: { $inc: { stock: -item.quantity } },
+        },
+      };
+    });
 
-  await OrderModel.create({
-    customer: req.user._id,
-    items: cart.items,
-    orderPrice: event.data.amount ?? 0,
-    paymentProvider: PaymentMethods.PAYSTACK,
-    paymentId: event.data.reference,
-    orderStatus: OrderStatuses.COMPLETED,
-  });
+    await OrderModel.create({
+      customer: req.user._id,
+      items: cart.items,
+      orderPrice: event.data.amount ?? 0,
+      paymentProvider: PaymentMethods.PAYSTACK,
+      paymentId: event.data.reference,
+      orderStatus: OrderStatuses.COMPLETED,
+    });
 
-  cart.items = [];
-  await ProductModel.bulkWrite(productBulkUpdate, { skipValidation: true });
-  await cart.save({ validateBeforeSave: false });
+    cart.items = [];
+    await ProductModel.bulkWrite(productBulkUpdate, { skipValidation: true });
+    await cart.save({ validateBeforeSave: false });
 
-  return new ApiResponse(StatusCodes.OK, "order created successfully", {});
+    return new ApiResponse(StatusCodes.OK, "order created successfully", {});
+  } catch {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Internal Server Error", []);
+  }
 });
 
 const updateOrderStatus = asyncHandler(async (req, res) => {
