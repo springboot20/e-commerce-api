@@ -36,7 +36,7 @@ const orderStats = [
   },
 ];
 
-const orderStatistics = asyncHandler(
+const getOrderStatistics = asyncHandler(
   /**
    *
    * @param {import('express').Request} req
@@ -59,4 +59,4 @@ const orderStatistics = asyncHandler(
   },
 )
 
-module.exports = { orderStatistics };
+module.exports = { getOrderStatistics };

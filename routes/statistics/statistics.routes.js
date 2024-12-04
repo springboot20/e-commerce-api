@@ -5,8 +5,12 @@ const { RoleEnums } = require("../../constants");
 
 const router = express.Router();
 
-router.use(verifyJWT);
-
-router.route("/orders-stats").get(checkPermissions(RoleEnums.ADMIN, RoleEnums.MODERATOR));
+router
+  .route("/orders-stats")
+  .get(
+    verifyJWT,
+    checkPermissions([RoleEnums.ADMIN, RoleEnums.MODERATOR]),
+    controllers.statisticsController.ordersStatistics.getOrderStatistics,
+  );
 
 module.exports = router;
