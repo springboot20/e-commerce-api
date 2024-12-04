@@ -25,14 +25,6 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser(process.env.JWT_SECRET));
 
-app.use("/api/v1/users", routers.usersRouter);
-app.use("/api/v1/products", routers.productsRouter);
-app.use("/api/v1/orders", routers.ordersRouter);
-app.use("/api/v1/categories", routers.categoryRouter);
-app.use("/api/v1/addresses", routers.addressesRouter);
-app.use("/api/v1/carts", routers.cartsRouter);
-app.use("/api/v1/statistics", routers.statisticsRouter);
-
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE");
@@ -40,6 +32,14 @@ app.use((req, res, next) => {
 
   next();
 });
+
+app.use("/api/v1/users", routers.usersRouter);
+app.use("/api/v1/products", routers.productsRouter);
+app.use("/api/v1/orders", routers.ordersRouter);
+app.use("/api/v1/categories", routers.categoryRouter);
+app.use("/api/v1/addresses", routers.addressesRouter);
+app.use("/api/v1/carts", routers.cartsRouter);
+app.use("/api/v1/statistics", routers.statisticsRouter);
 
 const serverConnection = () => {
   app.listen(PORT, () => {
