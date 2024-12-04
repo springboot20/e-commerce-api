@@ -19,7 +19,7 @@ router
 router
   .route("/:productId")
   .get(verifyJWT, controllers.productController.getProduct)
-  .patch(
+  .put(
     upload.single("imageSrc"),
     verifyJWT,
     checkPermissions([RoleEnums.ADMIN, RoleEnums.MODERATOR]),
