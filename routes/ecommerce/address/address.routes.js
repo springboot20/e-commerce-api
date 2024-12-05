@@ -9,7 +9,7 @@ router
   .route("/")
   .post(verifyJWT, addressController.createAddress)
   .get(verifyJWT, checkPermissions([RoleEnums.ADMIN]), addressController.getAllAddresses)
-  .patch(verifyJWT, addressController.userAddress.updateAddress);
+  .put(verifyJWT, addressController.userAddress.updateAddress);
 
 router
   .route("/current-user")
