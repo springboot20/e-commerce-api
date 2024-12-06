@@ -50,20 +50,21 @@ const ProductSchema = new Schema(
       type: Number,
       default: 0,
     },
+    ratings: {
+      type: Number,
+      default: 0,
+    },
+    colors: {
+      type: [String],
+      default: [],
+    },
+    sizes: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true },
 );
-
-// ProductSchema.virtual('reviews', {
-//   ref: 'Review',
-//   localField: '_id',
-//   foreignField: 'product',
-//   justOne: false,
-// });
-
-// ProductSchema.pre('remove', async function (next) {
-//   await this.model('Review').deleteMany({ product: this._id });
-// });
 
 ProductSchema.plugin(mongooseAggregatePaginate);
 

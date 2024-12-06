@@ -33,9 +33,7 @@ const register = asyncHandler(
 
     await user.save({ validateBeforeSave: false });
 
-    const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${
-      user._id
-    }/${unHashedToken}`;
+    const verifyLink = `${process.env.EMAIL_URL}/verify-email/${user?._id}/${unHashedToken}`;
 
     await sendMail(
       user?.email,

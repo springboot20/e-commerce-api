@@ -51,7 +51,7 @@ const forgotPassword = asyncHandler(
 
     await user.save({ validateBeforeSave: false });
 
-    const resetLink = `${req.protocol}://${req.get("host")}/api/v1/reset-password/${unHashedToken}`;
+    const resetLink = `${process.env.EMAIL_URL}/reset-password/${unHashedToken}`;
 
     await sendMail(user.email, "Password reset", { resetLink, username: user.username }, "reset");
 
@@ -87,7 +87,7 @@ const resendEmailVerification = asyncHandler(
 
     await user.save({ validateBeforeSave: false });
 
-    const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/verify-email/${unHashedToken}`;
+    const verifyLink = `${process.env.EMAIL_URL}/verify-email/${user?.id}/${unHashedToken}`;
 
     await sendMail(
       user?.email,
