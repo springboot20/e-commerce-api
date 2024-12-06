@@ -21,6 +21,7 @@ const createAddress = asyncHandler(async (req, res) => {
 
   if (existingAddress) {
     await model.AddressModel.findByIdAndDelete(existingAddress?._id);
+    await model.OrderModel.findOneAndDelete({ address: existingAddress?._id });
   }
 
   const newAddress = await model.AddressModel.create({
@@ -36,7 +37,7 @@ const createAddress = asyncHandler(async (req, res) => {
     lastname,
   });
 
-  await model.OrderModel({
+  await model.OrderModel.create({
     owner,
     address: newAddress._id,
   });

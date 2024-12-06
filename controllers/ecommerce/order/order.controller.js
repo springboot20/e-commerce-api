@@ -58,10 +58,6 @@ async function verifyPaystackPaymentHelper(reference) {
 }
 
 const generatePaystackOrder = asyncHandler(async (req, res) => {
-  const address = await AddressModel.findOne({ owner: req.user?._id });
-
-  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, "address does not exists");
-
   const cart = await CartModel.findOne({ owner: req.user._id });
   const user = await UserModel.findById(req.user._id);
 
@@ -84,7 +80,6 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
   if (response.status === true) {
     order = await OrderModel.create({
       customer: req.user?._id,
-      address: address?._id,
       paymentId: response.data?.reference,
       items: cartItems,
       orderStatus: OrderStatuses.PENDING,
