@@ -58,9 +58,7 @@ async function verifyPaystackPaymentHelper(reference) {
 }
 
 const generatePaystackOrder = asyncHandler(async (req, res) => {
-  const { addressId } = req.body;
-
-  const address = await AddressModel.findById(addressId);
+  const address = await AddressModel.findOne({ owner: req.user?._id });
 
   if (!address) throw new ApiError(StatusCodes.NOT_FOUND, "address does not exists");
 

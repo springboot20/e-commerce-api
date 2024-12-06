@@ -19,10 +19,9 @@ const createAddress = asyncHandler(async (req, res) => {
 
   const existingAddress = await model.AddressModel.findOne({ owner: req.user._id });
 
-  if (existingAddress)
-    return new ApiResponse(StatusCodes.OK, "user address already exists", {
-      address: existingAddress,
-    });
+  if (existingAddress) {
+    await model.AddressModel.findByIdAndDelete(existingAddress?._id);
+  }
 
   const newAddress = await model.AddressModel.create({
     owner,
