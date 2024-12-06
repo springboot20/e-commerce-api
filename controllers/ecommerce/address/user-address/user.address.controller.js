@@ -5,7 +5,10 @@ const { ApiError } = require("../../../../utils/api.error");
 const { ApiResponse } = require("../../../../utils/api.response");
 
 const getUserAddress = asyncHandler(async (req, res) => {
+  const { addressId } = req.params;
+
   const address = await model.AddressModel.findOne({
+    _id: addressId,
     owner: req.user._id,
   });
 
@@ -17,7 +20,10 @@ const getUserAddress = asyncHandler(async (req, res) => {
 });
 
 const deleteUserAddress = asyncHandler(async (req, res) => {
+  const { addressId } = req.params;
+
   const deletedAddress = await model.AddressModel.findOneAndDelete({
+    _id: addressId,
     onwer: req.user?._id,
   });
 
@@ -39,14 +45,11 @@ const updateAddress = asyncHandler(async (req, res) => {
     lastname,
   } = req.body;
 
-  const address = await model.AddressModel.findOne({
-    owner: req.user._id,
-  });
-
-  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, "address does not exist");
-
-  const updatedAddress = await model.AddressModel.findByIdAndUpdate(
-    address._id,
+  const address = await model.AddressModel.findOneAndUpdate(
+    {
+      _id: address._id,
+      owner: req.user?._id,
+    },
     {
       $set: {
         city,
@@ -63,8 +66,10 @@ const updateAddress = asyncHandler(async (req, res) => {
     { new: true },
   );
 
+  if (!address) throw new ApiError(StatusCodes.NOT_FOUND, "address does not exist");
+
   return new ApiResponse(StatusCodes.OK, "user address updated successfully", {
-    address: updatedAddress,
+    address,
   });
 });
 
@@ -73,6 +78,7 @@ const deleteAddress = asyncHandler(async (req, res) => {
 
   const deletedAddress = await model.AddressModel.findOneAndDelete({
     _id: addressId,
+    onwer: req.user?._id,
   });
 
   if (!deletedAddress) throw new ApiError(StatusCodes.NOT_FOUND, "address does not exist");

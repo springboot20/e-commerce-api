@@ -17,13 +17,6 @@ const createAddress = asyncHandler(async (req, res) => {
   } = req.body;
   const owner = req.user._id;
 
-  const existingAddress = await model.AddressModel.findOne({ owner: req.user._id });
-
-  if (existingAddress) {
-    await model.AddressModel.findByIdAndDelete(existingAddress?._id);
-    await model.OrderModel.findOneAndDelete({ address: existingAddress?._id });
-  }
-
   const newAddress = await model.AddressModel.create({
     owner,
     city,
@@ -35,11 +28,6 @@ const createAddress = asyncHandler(async (req, res) => {
     phone,
     firstname,
     lastname,
-  });
-
-  await model.OrderModel.create({
-    owner,
-    address: newAddress._id,
   });
 
   return new ApiResponse(StatusCodes.CREATED, "user address added successfully", {
