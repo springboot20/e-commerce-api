@@ -22,7 +22,7 @@ const getProductsStatistics = asyncHandler(async (req, res) => {
 
   const statistics = { totalProducts, averagePrice: products[0].avgragePrice };
 
-  return ApiResponse(StatusCodes.OK, "Product statistics fetched successfully", {statistics});
+  return new ApiResponse(StatusCodes.OK, "Product statistics fetched successfully", {statistics});
 });
 
 module.exports = { getProductsStatistics };
