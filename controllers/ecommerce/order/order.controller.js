@@ -194,7 +194,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
         Array.isArray(AvailableOrderStatusEnums) &&
         AvailableOrderStatusEnums.includes(status.toUpperCase())
           ? {
-              status: status.toUpperCase(),
+              orderStatus: status.toUpperCase(),
             }
           : {},
     },
