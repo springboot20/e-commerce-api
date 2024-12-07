@@ -11,7 +11,7 @@ const { CartModel, OrderModel, ProductModel, UserModel } = require("../../../mod
 const { getCart } = require("../cart/cart.controller");
 const { ApiResponse } = require("../../../utils/api.response.js");
 const axios = require("axios");
-const { removeCircularReferences } = require("../../../helpers.js");
+const { removeCircularReferences, getMognogoosePagination } = require("../../../helpers.js");
 
 async function initializePaystackPayment({ email, amount }) {
   try {
