@@ -13,4 +13,12 @@ router
     controllers.statisticsController.ordersStatistics.getOrderStatistics,
   );
 
+router
+  .route("/products-stats")
+  .get(
+    verifyJWT,
+    checkPermissions([RoleEnums.ADMIN, RoleEnums.MODERATOR]),
+    controllers.statisticsController.productsStatistics.getProductsStatistics,
+  );
+
 module.exports = router;
