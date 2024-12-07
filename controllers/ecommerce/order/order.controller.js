@@ -249,7 +249,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
     }),
   );
 
-  return ApiResponse(StatusCodes.OK, " orders fetched successfully", paginatedOrders);
+  return new ApiResponse(StatusCodes.OK, " orders fetched successfully", paginatedOrders);
 });
 
 module.exports = {
