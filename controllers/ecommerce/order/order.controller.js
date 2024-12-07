@@ -1,8 +1,13 @@
-const { PaymentMethods, OrderStatuses, paystackStatus } = require("../../../constants.js");
+const {
+  PaymentMethods,
+  OrderStatuses,
+  paystackStatus,
+  AvailableOrderStatusEnums,
+} = require("../../../constants.js");
 const { ApiError } = require("../../../utils/api.error");
 const { StatusCodes } = require("http-status-codes");
 const { asyncHandler } = require("../../../utils/asyncHandler");
-const { CartModel, OrderModel, ProductModel, UserModel, AddressModel } = require("../../../models");
+const { CartModel, OrderModel, ProductModel, UserModel } = require("../../../models");
 const { getCart } = require("../cart/cart.controller");
 const { ApiResponse } = require("../../../utils/api.response.js");
 const axios = require("axios");
@@ -179,8 +184,75 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   return new ApiResponse(StatusCodes.OK, "order status changed successfully", { status });
 });
 
+const getAllOrders = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10, status } = req.query;
+
+  const orderAggregate = OrderModel.aggregate([
+    {
+      $match:
+        status &&
+        Array.isArray(AvailableOrderStatusEnums) &&
+        AvailableOrderStatusEnums.includes(status.toUpperCase())
+          ? {
+              status: status.toUpperCase(),
+            }
+          : {},
+    },
+    {
+      $lookup: {
+        localField: "customer",
+        foreignField: "_id",
+        from: "users",
+        as: "customer",
+        pipeline: {
+          $project: {
+            _id: 1,
+            username: 1,
+            email: 1,
+          },
+        },
+      },
+    },
+    {
+      $lookup: {
+        localField: "address",
+        foreignField: "_id",
+        from: "addresses",
+        as: "address",
+      },
+    },
+    {
+      $addFields: {
+        address: { $first: "$address" },
+        customer: { $first: "$customer" },
+        totalItems: { $size: "$items" },
+      },
+    },
+    {
+      $project:{
+        items:0
+      }
+    }
+  ]);
+
+  const paginatedOrders = await OrderModel.aggregatePaginate(
+    orderAggregate,
+    getMognogoosePagination({
+      limit,
+      page,
+      customLabels: {
+        totalDocs: "total_users",
+        docs: "users",
+      },
+    }),
+  );
+
+  return ApiResponse(StatusCodes.OK, " orders fetched successfully", paginatedOrders);
+});
+
 module.exports = {
   generatePaystackOrder,
   orderFulfillmentHelper,
   updateOrderStatus,
+  getAllOrders,
 };

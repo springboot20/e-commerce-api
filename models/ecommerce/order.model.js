@@ -6,6 +6,7 @@ const {
   PaymentMethods,
 } = require("../../constants");
 const { Schema, model } = mongoose;
+const mongooseAggregatePaginate = require("mongoose-aggregate-paginate-v2");
 
 const OrderSchema = new Schema(
   {
@@ -61,6 +62,8 @@ const OrderSchema = new Schema(
   },
   { timestamps: true },
 );
+
+OrderSchema.plugin(mongooseAggregatePaginate)
 
 const OrderModel = model("Order", OrderSchema);
 
