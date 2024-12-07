@@ -200,17 +200,19 @@ const getAllOrders = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
+        from: "users",
         localField: "customer",
         foreignField: "_id",
-        from: "users",
         as: "customer",
-        pipeline: {
-          $project: {
-            _id: 1,
-            username: 1,
-            email: 1,
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              username: 1,
+              email: 1,
+            },
           },
-        },
+        ],
       },
     },
     {
@@ -229,10 +231,10 @@ const getAllOrders = asyncHandler(async (req, res) => {
       },
     },
     {
-      $project:{
-        items:0
-      }
-    }
+      $project: {
+        items: 0,
+      },
+    },
   ]);
 
   const paginatedOrders = await OrderModel.aggregatePaginate(
