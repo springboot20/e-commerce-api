@@ -9,7 +9,7 @@ router
   .route("/provider/paystack")
   .post(verifyJWT, controllers.orderController.generatePaystackOrder);
 
-router.route("/").post(verifyJWT, controllers.orderController.getAllOrders);
+router.route("/").get(verifyJWT, controllers.orderController.getAllOrders);
 
 router
   .route("/provider/paystack/verify-callback")
