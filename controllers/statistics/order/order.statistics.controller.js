@@ -3,6 +3,39 @@ const model = require("../../../models");
 const { ApiResponse } = require("../../../utils/api.response");
 const { asyncHandler } = require("../../../utils/asyncHandler");
 
+let dailyOrders = [
+  {
+    $group: {
+      _id: {
+        day: {
+          $dayOfMonth: "$createdAt",
+        },
+        month: {
+          $month: "$createdAt",
+        },
+        year: {
+          $year: "$createdAt",
+        },
+        status: "$orderStatus",
+      },
+      order_items: {
+        $sum: "$items",
+      },
+      total_amount: {
+        $sum: "$orderPrice",
+      },
+      count: { $sum: 1 },
+    },
+  },
+  {
+    $sort: {
+      "_id.year": -1,
+      "_id.month": -1,
+      "_id.day": -1,
+    },
+  },
+];
+
 let weeklyOrders = [
   {
     $group: {
@@ -61,31 +94,6 @@ let monthlyOrders = [
   },
 ];
 
-let yearlyOrders = [
-  {
-    $group: {
-      _id: {
-        year: {
-          $year: "$createdAt",
-        },
-        status: "$orderStatus",
-      },
-      order_items: {
-        $sum: "$items",
-      },
-      total_amount: {
-        $sum: "$orderPrice",
-      },
-      count: { $sum: 1 },
-    },
-  },
-  {
-    $sort: {
-      "_id.year": -1,
-    },
-  },
-];
-
 const getOrderStatistics = asyncHandler(
   /**
    *
@@ -100,9 +108,9 @@ const getOrderStatistics = asyncHandler(
       },
       {
         $facet: {
+          daily: dailyOrders,
           weekly: weeklyOrders,
           monthly: monthlyOrders,
-          yearly: yearlyOrders,
         },
       },
     ]);
