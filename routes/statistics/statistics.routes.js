@@ -14,6 +14,14 @@ router
   );
 
 router
+  .route("/")
+  .get(
+    verifyJWT,
+    checkPermissions([RoleEnums.ADMIN, RoleEnums.MODERATOR]),
+    controllers.statisticsController.allStatistics.getAllStatistics,
+  );
+
+router
   .route("/products-stats")
   .get(
     verifyJWT,
