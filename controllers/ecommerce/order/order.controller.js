@@ -243,8 +243,8 @@ const getAllOrders = asyncHandler(async (req, res) => {
       limit,
       page,
       customLabels: {
-        totalDocs: "total_users",
-        docs: "users",
+        totalDocs: "total_orders",
+        docs: "orders",
       },
     }),
   );
