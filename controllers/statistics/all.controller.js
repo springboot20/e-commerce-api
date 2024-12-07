@@ -25,8 +25,10 @@ const getAllStatistics = asyncHandler(async (req, res) => {
 
   const statistics = {
     totalProducts,
-    averagePrice: averagePrice[0].avgPrice,
-    totalSales: totalSales[0].totalSales,
+    product: {
+      averagePrice: averagePrice[0].avgPrice,
+      totalSales: totalSales[0].totalSales,
+    },
     totalOrders,
     customers,
   };
