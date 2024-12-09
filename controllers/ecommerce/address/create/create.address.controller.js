@@ -14,6 +14,7 @@ const createAddress = asyncHandler(async (req, res) => {
     phone,
     firstname,
     lastname,
+    shipping_method,
   } = req.body;
   const owner = req.user._id;
 
@@ -28,6 +29,7 @@ const createAddress = asyncHandler(async (req, res) => {
     phone,
     firstname,
     lastname,
+    shipping_method,
   });
 
   return new ApiResponse(StatusCodes.CREATED, "user address added successfully", {

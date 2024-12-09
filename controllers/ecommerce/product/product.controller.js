@@ -47,7 +47,7 @@ const createNewProduct = asyncHandler(
 
     const user = req.user._id;
 
-    const createdProduct = await model.ProductModel.create({
+    const productData = {
       user,
       name,
       price,
@@ -59,7 +59,18 @@ const createNewProduct = asyncHandler(
         public_id: uploadImage?.public_id,
       },
       stock,
-    });
+    };
+
+    // Conditionally add colors and sizes if present in the request body
+    if (colors?.length) {
+      productData.colors = colors; // Add colors to the product
+    }
+    if (sizes?.length) {
+      productData.sizes = sizes; // Add sizes to the product
+    }
+
+    // Create the product in the database
+    const createdProduct = await model.ProductModel.create(productData);
 
     return new ApiResponse(StatusCodes.CREATED, "product created successfully", {
       product: createdProduct,
@@ -140,14 +151,15 @@ const updateProduct = asyncHandler(
    */
   async (req, res) => {
     const { productId } = req.params;
-    const { name, price, description, category, stock, featured } = req.body;
+    const { name, price, description, category, stock, featured, colors, sizes } = req.body;
 
+    // Find the product
     const product = await model.ProductModel.findById(productId);
-
     if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
 
     let uploadImage;
 
+    // Initialize the fields to update
     let updatedFields = {
       user: req.user._id,
       name,
@@ -158,6 +170,7 @@ const updateProduct = asyncHandler(
       stock,
     };
 
+    // Handle image upload
     if (req.file) {
       if (product.imageSrc?.public_id) {
         await deleteFileFromCloudinary(product.imageSrc?.public_id);
@@ -174,12 +187,13 @@ const updateProduct = asyncHandler(
       };
     }
 
+    // Handle category update
     if (category) {
       const normalizedCategoryName = category.trim().toLowerCase();
 
       let existingCategory = await model.CategoryModel.findOne({ name: normalizedCategoryName });
       if (!existingCategory) {
-        existingCategory = model.CategoryModel.create({
+        existingCategory = await model.CategoryModel.create({
           name: normalizedCategoryName,
           owner: req.user?._id,
         });
@@ -190,6 +204,16 @@ const updateProduct = asyncHandler(
       }
     }
 
+    // Conditionally update colors and sizes if present in the request body
+    if (colors?.length) {
+      updatedFields.colors = colors; // Update colors if provided
+    }
+
+    if (sizes?.length) {
+      updatedFields.sizes = sizes; // Update sizes if provided
+    }
+
+    // Update the product in the database
     const updatedProduct = await model.ProductModel.findByIdAndUpdate(
       productId,
       {

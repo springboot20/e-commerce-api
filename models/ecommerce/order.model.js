@@ -59,11 +59,14 @@ const OrderSchema = new Schema(
     discountedOrderPrice: {
       type: Number,
     },
+    shipping_method: {
+      type: String,
+    },
   },
   { timestamps: true },
 );
 
-OrderSchema.plugin(mongooseAggregatePaginate)
+OrderSchema.plugin(mongooseAggregatePaginate);
 
 const OrderModel = model("Order", OrderSchema);
 

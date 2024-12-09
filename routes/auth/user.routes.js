@@ -14,7 +14,7 @@ router.route("/register").post(registerValidator(), validate, controllers.authCo
 
 router.route("/login").post(loginValidator(), validate, controllers.authController.login);
 
-router.route("/verify-email/:id/:token").post(controllers.emailController.emailVerification);
+router.route("/verify-email/:id/:token").get(controllers.emailController.emailVerification);
 
 router.route("/forgot-password/").post(controllers.emailController.forgotPassword);
 

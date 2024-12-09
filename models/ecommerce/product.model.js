@@ -59,8 +59,18 @@ const ProductSchema = new Schema(
       default: [],
     },
     sizes: {
-      type: [String],
-      default: [],
+      type: [
+        {
+          name: String,
+          inStock: Boolean,
+        },
+      ],
+      default: [
+        {
+          name: "XXS",
+          inStock: false,
+        },
+      ],
     },
   },
   { timestamps: true },

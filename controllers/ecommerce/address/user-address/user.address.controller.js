@@ -43,6 +43,7 @@ const updateAddress = asyncHandler(async (req, res) => {
     phone,
     firstname,
     lastname,
+    shipping_method,
   } = req.body;
 
   const address = await model.AddressModel.findOneAndUpdate(
@@ -60,6 +61,7 @@ const updateAddress = asyncHandler(async (req, res) => {
         state,
         phone,
         firstname,
+        shipping_method,
         lastname,
       },
     },
