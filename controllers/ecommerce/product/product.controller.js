@@ -19,7 +19,7 @@ const createNewProduct = asyncHandler(
    * @returns
    */
   async (req, res) => {
-    const { name, price, description, category, stock, featured } = req.body;
+    const { name, price, description, category, stock, featured, colors } = req.body;
 
     const normalizedCategoryName = category.trim().toLowerCase();
 
