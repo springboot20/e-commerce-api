@@ -26,6 +26,14 @@ router
   .get(verifyJWT, controllers.orderController.orderFulfillmentHelper);
 
 router
+  .route("/provider/paystack/verify-callback")
+  .get(
+    verifyJWT,
+    checkPermissions([RoleEnums.USER, RoleEnums.MODERATOR, RoleEnums.ADMIN]),
+    controllers.orderController.getOrderById,
+  );
+
+router
   .route("/status/:orderId")
   .patch(
     verifyJWT,

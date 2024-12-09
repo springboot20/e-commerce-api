@@ -326,10 +326,62 @@ const getUserOrders = asyncHandler(async (req, res) => {
   return new ApiResponse(StatusCodes.OK, " orders fetched successfully", paginatedOrders);
 });
 
+const getOrderById = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+
+  const order = await OrderModel.aggregate([
+    {
+      $match: {
+        _id: orderId,
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "customer",
+        foreignField: "_id",
+        as: "customer",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              username: 1,
+              email: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        localField: "address",
+        foreignField: "_id",
+        from: "addresses",
+        as: "address",
+      },
+    },
+    {
+      $addFields: {
+        address: { $first: "$address" },
+        customer: { $first: "$customer" },
+        totalItems: { $size: "$items" },
+      },
+    },
+    {
+      $project: {
+        items: 0,
+      },
+    },
+  ]);
+
+  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order });
+});
+
 module.exports = {
   generatePaystackOrder,
   orderFulfillmentHelper,
   updateOrderStatus,
   getAllOrders,
   getUserOrders,
+  getOrderById,
 };
