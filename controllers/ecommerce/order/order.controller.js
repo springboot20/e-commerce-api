@@ -252,9 +252,73 @@ const getAllOrders = asyncHandler(async (req, res) => {
   return new ApiResponse(StatusCodes.OK, " orders fetched successfully", paginatedOrders);
 });
 
+const getUserOrders = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+
+  const orderAggregate = OrderModel.aggregate([
+    {
+      $match: {
+        customer: req.user?._id,
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "customer",
+        foreignField: "_id",
+        as: "customer",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              username: 1,
+              email: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        localField: "address",
+        foreignField: "_id",
+        from: "addresses",
+        as: "address",
+      },
+    },
+    {
+      $addFields: {
+        address: { $first: "$address" },
+        customer: { $first: "$customer" },
+        totalItems: { $size: "$items" },
+      },
+    },
+    {
+      $project: {
+        items: 0,
+      },
+    },
+  ]);
+
+  const paginatedOrders = await OrderModel.aggregatePaginate(
+    orderAggregate,
+    getMognogoosePagination({
+      limit,
+      page,
+      customLabels: {
+        totalDocs: "total_orders",
+        docs: "orders",
+      },
+    }),
+  );
+
+  return new ApiResponse(StatusCodes.OK, " orders fetched successfully", paginatedOrders);
+});
+
 module.exports = {
   generatePaystackOrder,
   orderFulfillmentHelper,
   updateOrderStatus,
   getAllOrders,
+  getUserOrders,
 };
