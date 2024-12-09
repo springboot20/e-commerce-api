@@ -407,7 +407,7 @@ const getOrderById = asyncHandler(async (req, res) => {
     },
   ]);
 
-  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order });
+  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order:order[0] });
 });
 
 const getAdminOrderById = asyncHandler(async (req, res) => {
@@ -458,7 +458,7 @@ const getAdminOrderById = asyncHandler(async (req, res) => {
     },
   ]);
 
-  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order });
+  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order:order[0] });
 });
 
 module.exports = {
