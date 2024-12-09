@@ -26,7 +26,7 @@ router
   .get(verifyJWT, controllers.orderController.orderFulfillmentHelper);
 
 router
-  .route("/users-orders/:orderId")
+  .route("/user-orders/:orderId")
   .get(verifyJWT, checkPermissions([RoleEnums.USER]), controllers.orderController.getOrderById);
 
 router
