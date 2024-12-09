@@ -357,22 +357,52 @@ const getOrderById = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
+        from: "addresses",
         localField: "address",
         foreignField: "_id",
-        from: "addresses",
         as: "address",
       },
     },
     {
+      $lookup: {
+        from: "products",
+        localField: "items.productId",
+        foreignField: "_id",
+        as: "products",
+      },
+    },
+    {
       $addFields: {
-        address: { $first: "$address" },
         customer: { $first: "$customer" },
-        totalItems: { $size: "$items" },
+        address: { $first: "$address" },
+        items: {
+          $map: {
+            input: "$items",
+            as: "item",
+            in: {
+              quantity: "$$item.quantity",
+              product: {
+                $arrayElemAt: [
+                  {
+                    $filter: {
+                      input: "$products",
+                      as: "product",
+                      cond: {
+                        $eq: ["$$product._id", "$$item.productId"],
+                      },
+                    },
+                  },
+                  0,
+                ],
+              },
+            },
+          },
+        },
       },
     },
     {
       $project: {
-        items: 0,
+        products: 0, // Remove intermediate `products` array from final result
       },
     },
   ]);
