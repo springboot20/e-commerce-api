@@ -253,13 +253,24 @@ const getAllOrders = asyncHandler(async (req, res) => {
 });
 
 const getUserOrders = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { status, page = 1, limit = 10 } = req.query;
+
+  // Build the $match object dynamically
+  const match = {
+    customer: req.user?._id,
+  };
+
+  if (
+    status &&
+    Array.isArray(AvailableOrderStatusEnums) &&
+    AvailableOrderStatusEnums.includes(status.toUpperCase())
+  ) {
+    match.orderStatus = status.toUpperCase();
+  }
 
   const orderAggregate = OrderModel.aggregate([
     {
-      $match: {
-        customer: req.user?._id,
-      },
+      $match: match,
     },
     {
       $lookup: {
