@@ -12,6 +12,7 @@ const { getCart } = require("../cart/cart.controller");
 const { ApiResponse } = require("../../../utils/api.response.js");
 const axios = require("axios");
 const { removeCircularReferences, getMognogoosePagination } = require("../../../helpers.js");
+const { default: mongoose } = require("mongoose");
 
 async function initializePaystackPayment({ email, amount }) {
   try {
@@ -329,11 +330,12 @@ const getUserOrders = asyncHandler(async (req, res) => {
 const getOrderById = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
 
+  console.log(orderId);
+
   const order = await OrderModel.aggregate([
     {
       $match: {
-        customer: req.user._id,
-        _id: orderId,
+        _id: new mongoose.Types.ObjectId(orderId),
       },
     },
     {
@@ -384,7 +386,7 @@ const getAdminOrderById = asyncHandler(async (req, res) => {
   const order = await OrderModel.aggregate([
     {
       $match: {
-        _id: orderId,
+        _id: new mongoose.Types.ObjectId(orderId),
       },
     },
     {
@@ -436,5 +438,5 @@ module.exports = {
   getAllOrders,
   getUserOrders,
   getOrderById,
-  getAdminOrderById
+  getAdminOrderById,
 };
