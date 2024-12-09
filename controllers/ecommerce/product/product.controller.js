@@ -61,6 +61,15 @@ const createNewProduct = asyncHandler(
       stock,
     };
 
+    // If sizes is a string, parse it into an array of objects
+    if (typeof sizes === "string") {
+      try {
+        sizes = JSON.parse(sizes);
+      } catch (error) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid sizes format");
+      }
+    }
+
     // Conditionally add colors and sizes if present in the request body
     if (colors?.length) {
       productData.colors = colors; // Add colors to the product
@@ -201,6 +210,15 @@ const updateProduct = asyncHandler(
         updatedFields.category = existingCategory?._id;
       } else {
         updatedFields.category = existingCategory?._id;
+      }
+    }
+
+    // If sizes is a string, parse it into an array of objects
+    if (typeof sizes === "string") {
+      try {
+        sizes = JSON.parse(sizes);
+      } catch (error) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid sizes format");
       }
     }
 
