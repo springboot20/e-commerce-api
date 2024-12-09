@@ -332,6 +332,58 @@ const getOrderById = asyncHandler(async (req, res) => {
   const order = await OrderModel.aggregate([
     {
       $match: {
+        customer: req.user._id,
+        _id: orderId,
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "customer",
+        foreignField: "_id",
+        as: "customer",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              username: 1,
+              email: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        localField: "address",
+        foreignField: "_id",
+        from: "addresses",
+        as: "address",
+      },
+    },
+    {
+      $addFields: {
+        address: { $first: "$address" },
+        customer: { $first: "$customer" },
+        totalItems: { $size: "$items" },
+      },
+    },
+    {
+      $project: {
+        items: 0,
+      },
+    },
+  ]);
+
+  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order });
+});
+
+const getAdminOrderById = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+
+  const order = await OrderModel.aggregate([
+    {
+      $match: {
         _id: orderId,
       },
     },
@@ -384,4 +436,5 @@ module.exports = {
   getAllOrders,
   getUserOrders,
   getOrderById,
+  getAdminOrderById
 };

@@ -26,11 +26,15 @@ router
   .get(verifyJWT, controllers.orderController.orderFulfillmentHelper);
 
 router
-  .route("/provider/paystack/verify-callback")
+  .route("/users-orders/:orderId")
+  .get(verifyJWT, checkPermissions([RoleEnums.USER]), controllers.orderController.getOrderById);
+
+router
+  .route("/:orderId")
   .get(
     verifyJWT,
-    checkPermissions([RoleEnums.USER, RoleEnums.MODERATOR, RoleEnums.ADMIN]),
-    controllers.orderController.getOrderById,
+    checkPermissions([RoleEnums.ADMIN, RoleEnums.MODERATOR]),
+    controllers.orderController.getAdminOrderById,
   );
 
 router
