@@ -327,12 +327,8 @@ const getUserOrders = asyncHandler(async (req, res) => {
   return new ApiResponse(StatusCodes.OK, " orders fetched successfully", paginatedOrders);
 });
 
-const getOrderById = asyncHandler(async (req, res) => {
-  const { orderId } = req.params;
-
-  console.log(orderId);
-
-  const order = await OrderModel.aggregate([
+const buildOrderAggregationPipeline = (orderId, isAdmin = false) => {
+  const basePipeline = [
     {
       $match: {
         _id: new mongoose.Types.ObjectId(orderId),
@@ -363,102 +359,90 @@ const getOrderById = asyncHandler(async (req, res) => {
         as: "address",
       },
     },
-    {
-      $lookup: {
-        from: "products",
-        localField: "items.productId",
-        foreignField: "_id",
-        as: "products",
+  ];
+
+  // Add additional admin-specific fields or transformations
+  if (isAdmin) {
+    basePipeline.push(
+      {
+        $addFields: {
+          address: { $first: "$address" },
+          customer: { $first: "$customer" },
+          totalItems: { $size: "$items" },
+        },
       },
-    },
-    {
-      $addFields: {
-        customer: { $first: "$customer" },
-        address: { $first: "$address" },
-        items: {
-          $map: {
-            input: "$items",
-            as: "item",
-            in: {
-              quantity: "$$item.quantity",
-              product: {
-                $arrayElemAt: [
-                  {
-                    $filter: {
-                      input: "$products",
-                      as: "product",
-                      cond: {
-                        $eq: ["$$product._id", "$$item.productId"],
+      {
+        $project: {
+          items: 0, // Admin does not need item details
+        },
+      },
+    );
+  } else {
+    basePipeline.push(
+      {
+        $lookup: {
+          from: "products",
+          localField: "items.productId",
+          foreignField: "_id",
+          as: "products",
+        },
+      },
+      {
+        $addFields: {
+          customer: { $first: "$customer" },
+          address: { $first: "$address" },
+          items: {
+            $map: {
+              input: "$items",
+              as: "item",
+              in: {
+                quantity: "$$item.quantity",
+                product: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: "$products",
+                        as: "product",
+                        cond: {
+                          $eq: ["$$product._id", "$$item.productId"],
+                        },
                       },
                     },
-                  },
-                  0,
-                ],
+                    0,
+                  ],
+                },
               },
             },
           },
         },
       },
-    },
-    {
-      $project: {
-        products: 0, // Remove intermediate `products` array from final result
+      {
+        $project: {
+          products: 0, // Remove intermediate `products` array from final result
+        },
       },
-    },
-  ]);
+    );
+  }
 
-  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order:order[0] });
+  return basePipeline;
+};
+
+const getOrderById = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+
+  const pipeline = buildOrderAggregationPipeline(orderId);
+  const order = await OrderModel.aggregate(pipeline);
+
+  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order: order[0] });
 });
 
 const getAdminOrderById = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
 
-  const order = await OrderModel.aggregate([
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(orderId),
-      },
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "customer",
-        foreignField: "_id",
-        as: "customer",
-        pipeline: [
-          {
-            $project: {
-              _id: 1,
-              username: 1,
-              email: 1,
-            },
-          },
-        ],
-      },
-    },
-    {
-      $lookup: {
-        localField: "address",
-        foreignField: "_id",
-        from: "addresses",
-        as: "address",
-      },
-    },
-    {
-      $addFields: {
-        address: { $first: "$address" },
-        customer: { $first: "$customer" },
-        totalItems: { $size: "$items" },
-      },
-    },
-    {
-      $project: {
-        items: 0,
-      },
-    },
-  ]);
+  const pipeline = buildOrderAggregationPipeline(orderId, true);
+  const order = await OrderModel.aggregate(pipeline);
 
-  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order:order[0] });
+  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order: order[0] });
 });
 
 module.exports = {
