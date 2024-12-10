@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
 const mongooseAggregatePaginate = require("mongoose-aggregate-paginate-v2");
 
+const sizeSchema = new Schema({
+  name: { type: String, required: true },
+  inStock: { type: Boolean, required: true },
+});
+
 const ProductSchema = new Schema(
   {
     user: {
@@ -59,18 +64,8 @@ const ProductSchema = new Schema(
       default: [],
     },
     sizes: {
-      type: [
-        {
-          name: String,
-          inStock: Boolean,
-        },
-      ],
-      default: [
-        {
-          name: "XXS",
-          inStock: false,
-        },
-      ],
+      type: [sizeSchema],
+      default: [],
     },
   },
   { timestamps: true },

@@ -3,7 +3,7 @@ const { StatusCodes } = require("http-status-codes");
 const { asyncHandler } = require("../../../utils/asyncHandler");
 const { ApiError } = require("../../../utils/api.error");
 const { ApiResponse } = require("../../../utils/api.response");
-const { getMognogoosePagination } = require("../../../helpers");
+const { getMognogoosePagination, removeCircularReferences } = require("../../../helpers");
 
 const { default: mongoose } = require("mongoose");
 const {
@@ -44,7 +44,8 @@ const createNewProduct = asyncHandler(
         `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
       );
     }
-
+    const parsedSizes = typeof sizes === "string" ? JSON.parse(sizes) : sizes;
+    console.log(parsedSizes);
     const user = req.user._id;
 
     const productData = {
@@ -59,24 +60,16 @@ const createNewProduct = asyncHandler(
         public_id: uploadImage?.public_id,
       },
       stock,
+      colors: colors || [], // Ensure colors is an array
+      sizes: Array.isArray(parsedSizes)
+        ? parsedSizes.map((size) => ({
+            name: size.name?.trim(), // Ensure the name is trimmed
+            inStock: !!size.inStock, // Ensure inStock is a boolean
+          }))
+        : [],
     };
 
-    // If sizes is a string, parse it into an array of objects
-    if (typeof sizes === "string") {
-      try {
-        sizes = JSON.parse(sizes);
-      } catch (error) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid sizes format");
-      }
-    }
-
-    // Conditionally add colors and sizes if present in the request body
-    if (colors?.length) {
-      productData.colors = colors; // Add colors to the product
-    }
-    if (sizes?.length) {
-      productData.sizes = sizes; // Add sizes to the product
-    }
+    console.log(productData);
 
     // Create the product in the database
     const createdProduct = await model.ProductModel.create(productData);
