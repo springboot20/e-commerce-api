@@ -110,16 +110,16 @@ userSchema.methods.generateTemporaryTokens = function () {
 };
 
 userSchema.post("save", async function (user, next) {
-  const userCart = await CartModel.findOne({ bookedBy: user._id });
-
-  if (!userCart) {
-    await CartModel.create({
-      owner: user._id,
-      items: [],
-    });
+  try {
+    await CartModel.findOneAndUpdate(
+      { owner: user._id }, // Search criteria
+      { $setOnInsert: { items: [] } }, // Fields to set if no cart exists
+      { upsert: true, new: true }, // Options: create if not found
+    );
+    next(); // Proceed to the next middleware
+  } catch (error) {
+    next(error); // Pass the error to the next middleware
   }
-
-  next();
 });
 
 userSchema.plugin(mongooseAggregatePaginate);
