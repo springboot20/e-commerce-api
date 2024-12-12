@@ -5,29 +5,41 @@ const { StatusCodes } = require("http-status-codes");
 const model = require("../../models/index");
 const { sendMail } = require("../../service/email.service");
 
-const emailVerification = asyncHandler(async (req, res) => {
-  const { token, id } = req.params;
+const emailVerification = asyncHandler(
+  /**
+   *
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @returns
+   */
 
-  if (!token) throw new ApiError(StatusCodes.UNAUTHORIZED, "verification token missing");
+  async (req, res) => {
+    const { token, id } = req.query;
 
-  const user = await model.UserModel.findOne({
-    _id: id,
-    emailVerificationTokenExpiry: { $gte: Date.now() },
-  });
+    if (!token) throw new ApiError(StatusCodes.UNAUTHORIZED, "verification token missing");
 
-  if (!user)
-    throw new ApiError(StatusCodes.UNAUTHORIZED, "unable to verify user, token invalid or expired");
+    const user = await model.UserModel.findOne({
+      _id: id,
+      emailVerificationTokenExpiry: { $gte: Date.now() },
+    });
 
-  user.emailVerificationToken = undefined;
-  user.emailVerificationTokenExpiry = undefined;
-  user.isEmailVerified = true;
+    if (!user)
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "unable to verify user, token invalid or expired",
+      );
 
-  await user.save({ validateBeforeSave: false });
+    user.emailVerificationToken = undefined;
+    user.emailVerificationTokenExpiry = undefined;
+    user.isEmailVerified = true;
 
-  return new ApiResponse(StatusCodes.OK, "user email verified successfully", {
-    isEmailVerified: true,
-  });
-});
+    await user.save({ validateBeforeSave: false });
+
+    return new ApiResponse(StatusCodes.OK, "user email verified successfully", {
+      isEmailVerified: true,
+    });
+  },
+);
 
 const forgotPassword = asyncHandler(
   /**
@@ -51,7 +63,7 @@ const forgotPassword = asyncHandler(
 
     await user.save({ validateBeforeSave: false });
 
-    const resetLink = `${process.env.EMAIL_URL}/reset-password/${unHashedToken}`;
+    const resetLink = `${process.env.EMAIL_URL}/forgot-password/${unHashedToken}`;
 
     await sendMail(user.email, "Password reset", { resetLink, username: user.username }, "reset");
 

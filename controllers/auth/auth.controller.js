@@ -149,7 +149,7 @@ const resetForgottenPassword = asyncHandler(
    */
 
   async (req, res) => {
-    const { token } = req.params;
+    const { token } = req.query;
     const { newPassword } = req.body;
 
     if (!token) {

@@ -14,11 +14,11 @@ router.route("/register").post(registerValidator(), validate, controllers.authCo
 
 router.route("/login").post(loginValidator(), validate, controllers.authController.login);
 
-router.route("/verify-email/:id/:token").get(controllers.emailController.emailVerification);
+router.route("/verify-email").get(controllers.emailController.emailVerification);
 
-router.route("/forgot-password/").post(controllers.emailController.forgotPassword);
+router.route("/forgot-password").post(controllers.emailController.forgotPassword);
 
-router.route("/reset-password/:token").post(controllers.authController.resetForgottenPassword);
+router.route("/reset-password").post(controllers.authController.resetForgottenPassword);
 
 /**
  * ADMIN ROUTES
