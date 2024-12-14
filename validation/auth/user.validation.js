@@ -16,7 +16,6 @@ const registerValidator = () => [
     .trim()
     .notEmpty()
     .withMessage("phone number is required")
-    .isEmail()
     .isMobilePhone("any")
     .withMessage("must be a valid phone number format"),
   body("role").optional().trim().isIn(AvailableRoles).withMessage("Invalid user role"),
