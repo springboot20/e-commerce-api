@@ -15,12 +15,12 @@ const emailVerification = asyncHandler(
    */
 
   async (req, res) => {
-    const { token } = req.body;
+    const { token, email } = req.body;
 
     if (!token) throw new ApiError(StatusCodes.UNAUTHORIZED, "verification token missing");
 
     const user = await model.UserModel.findOne({
-      _id: id,
+      email,
       emailVerificationTokenExpiry: { $gte: Date.now() },
     });
 

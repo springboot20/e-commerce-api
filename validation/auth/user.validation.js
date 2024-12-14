@@ -12,10 +12,13 @@ const registerValidator = () => [
     .isEmail()
     .normalizeEmail()
     .withMessage("must be a valid email format"),
-  // .matches(passwordReg)
-  // .withMessage(
-  //   "password must be at least 6 long in length and it is expected to contain digits, letter",
-  // ),
+  body("phone_number")
+    .trim()
+    .notEmpty()
+    .withMessage("phone number is required")
+    .isEmail()
+    .isMobilePhone("any")
+    .withMessage("must be a valid phone number format"),
   body("role").optional().trim().isIn(AvailableRoles).withMessage("Invalid user role"),
 ];
 

@@ -22,7 +22,7 @@ router
 
 router.route("/login").post(loginValidator(), validate, controllers.authController.login);
 
-router.route("/verify-email").get(controllers.emailController.emailVerification);
+router.route("/verify-email").post(controllers.emailController.emailVerification);
 
 router.route("/forgot-password").post(controllers.emailController.forgotPassword);
 

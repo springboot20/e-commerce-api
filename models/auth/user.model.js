@@ -29,6 +29,9 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    phone_number: {
+      type: String,
+    },
     avatar: {
       type: {
         url: String,

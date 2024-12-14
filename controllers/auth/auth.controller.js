@@ -14,7 +14,7 @@ const register = asyncHandler(
    * @param {import('express').Response} res
    */
   async (req, res) => {
-    const { username, email, role } = req.body;
+    const { username, email, role, phone_number } = req.body;
 
     const existedUser = await model.UserModel.findOne({ $or: [{ email }, { username }] });
     if (existedUser) throw new ApiError(StatusCodes.CONFLICT, "user already exists in database");
@@ -22,6 +22,7 @@ const register = asyncHandler(
     const user = await model.UserModel.create({
       username,
       email,
+      phone_number,
       role: role ?? RoleEnums.USER,
     });
 
