@@ -98,7 +98,7 @@ userSchema.methods.generateRefreshToken = function () {
 };
 
 userSchema.methods.generateTemporaryTokens = function () {
-  const unHashedToken = crypto.randomBytes(20).toString("hex");
+  const unHashedToken = Math.floor(1000 + Math.random() * 1000000);
 
   // Generate salt and hash the token synchronously
   const salt = bcrypt.genSaltSync(10); // Use synchronous version for hashing

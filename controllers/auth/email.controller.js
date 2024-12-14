@@ -4,6 +4,7 @@ const { ApiError } = require("../../utils/api.error");
 const { StatusCodes } = require("http-status-codes");
 const model = require("../../models/index");
 const { sendMail } = require("../../service/email.service");
+const bcrypt = require("bcryptjs");
 
 const emailVerification = asyncHandler(
   /**
@@ -14,7 +15,7 @@ const emailVerification = asyncHandler(
    */
 
   async (req, res) => {
-    const { token, id } = req.query;
+    const { token } = req.body;
 
     if (!token) throw new ApiError(StatusCodes.UNAUTHORIZED, "verification token missing");
 
@@ -28,6 +29,10 @@ const emailVerification = asyncHandler(
         StatusCodes.UNAUTHORIZED,
         "unable to verify user, token invalid or expired",
       );
+
+    const validToken = await bcrypt.compare(token, user?.emailVerificationToken);
+
+    if (!validToken) throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid email token provided");
 
     user.emailVerificationToken = undefined;
     user.emailVerificationTokenExpiry = undefined;
@@ -63,9 +68,12 @@ const forgotPassword = asyncHandler(
 
     await user.save({ validateBeforeSave: false });
 
-    const resetLink = `${process.env.EMAIL_URL}/forgot-password/${unHashedToken}`;
-
-    await sendMail(user.email, "Password reset", { resetLink, username: user.username }, "reset");
+    await sendMail(
+      user.email,
+      "Password reset",
+      { resetCode: unHashedToken, username: user?.username },
+      "reset",
+    );
 
     return new ApiResponse(StatusCodes.OK, "password reset link sent successfully");
   },
@@ -78,7 +86,9 @@ const resendEmailVerification = asyncHandler(
    */
 
   async (req, res) => {
-    const user = await model.UserModel.findById(req.user._id);
+    const user = await model.UserModel.findOne({
+      $or: [{ email: req.body.email }, { _id: req.user._id }],
+    });
 
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, "user does not exists", []);
@@ -99,12 +109,10 @@ const resendEmailVerification = asyncHandler(
 
     await user.save({ validateBeforeSave: false });
 
-    const verifyLink = `${process.env.EMAIL_URL}/verify-email/${user?.id}/${unHashedToken}`;
-
     await sendMail(
       user?.email,
       "Email verification",
-      { username: user?.username, verificationLink: verifyLink },
+      { username: user?.username, verificationCode: unHashedToken },
       "email",
     );
 

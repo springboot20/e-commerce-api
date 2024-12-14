@@ -32,12 +32,10 @@ const register = asyncHandler(
 
     await user.save({ validateBeforeSave: false });
 
-    const verifyLink = `${process.env.EMAIL_URL}/verify-email/${user?._id}/${unHashedToken}`;
-
     await sendMail(
       user?.email,
       "Email verification",
-      { username: user?.username, verificationLink: verifyLink },
+      { username: user?.username, verificationCode: unHashedToken },
       "email",
     );
 
@@ -61,7 +59,7 @@ const register = asyncHandler(
   },
 );
 
- const createPassword = asyncHandler(async (req, res) => {
+const createPassword = asyncHandler(async (req, res) => {
   const { password, email } = req.body;
 
   const user = await model.UserModel.findOneAndUpdate(
@@ -170,8 +168,7 @@ const resetForgottenPassword = asyncHandler(
    */
 
   async (req, res) => {
-    const { token } = req.query;
-    const { newPassword } = req.body;
+    const { newPassword, token } = req.body;
 
     if (!token) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "verification token is not provided");
