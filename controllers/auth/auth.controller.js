@@ -14,7 +14,7 @@ const register = asyncHandler(
    * @param {import('express').Response} res
    */
   async (req, res) => {
-    const { username, email, password, role } = req.body;
+    const { username, email, role } = req.body;
 
     const existedUser = await model.UserModel.findOne({ $or: [{ email }, { username }] });
     if (existedUser) throw new ApiError(StatusCodes.CONFLICT, "user already exists in database");
@@ -22,7 +22,6 @@ const register = asyncHandler(
     const user = await model.UserModel.create({
       username,
       email,
-      password,
       role: role ?? RoleEnums.USER,
     });
 
@@ -61,6 +60,28 @@ const register = asyncHandler(
     );
   },
 );
+
+ const createPassword = asyncHandler(async (req, res) => {
+  const { password, email } = req.body;
+
+  const user = await model.UserModel.findOneAndUpdate(
+    { email },
+    {
+      $set: {
+        password,
+      },
+    },
+    { new: true },
+  );
+
+  const createdUser = await model.UserModel.findById(user._id).select(
+    "-password -emailVerificationToken -emailVerificationExpiry -refreshToken",
+  );
+
+  return new ApiResponse(StatusCodes.OK, "User password created successfully", {
+    user: createdUser,
+  });
+});
 
 const login = asyncHandler(
   /**
@@ -209,6 +230,7 @@ module.exports = {
   register,
   login,
   logOut,
+  createPassword,
   resetForgottenPassword,
   assignRole,
 };

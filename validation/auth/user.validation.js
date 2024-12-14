@@ -12,12 +12,15 @@ const registerValidator = () => [
     .isEmail()
     .normalizeEmail()
     .withMessage("must be a valid email format"),
-  body("password").trim().notEmpty().withMessage("password is required"),
   // .matches(passwordReg)
   // .withMessage(
   //   "password must be at least 6 long in length and it is expected to contain digits, letter",
   // ),
   body("role").optional().trim().isIn(AvailableRoles).withMessage("Invalid user role"),
+];
+
+const passwordValidator = () => [
+  body("password").trim().notEmpty().withMessage("password is required"),
 ];
 
 const loginValidator = () => [
@@ -28,14 +31,11 @@ const loginValidator = () => [
     .isEmail()
     .normalizeEmail()
     .withMessage("must be a valid email format"),
-  body("password")
-    .trim()
-    .notEmpty()
-    .withMessage("password is required")
-    // .matches(passwordReg)
-    // .withMessage(
-    //   "password must be at least 6 long in length and it is expected to contain digits, letter",
-    // ),
+  body("password").trim().notEmpty().withMessage("password is required"),
+  // .matches(passwordReg)
+  // .withMessage(
+  //   "password must be at least 6 long in length and it is expected to contain digits, letter",
+  // ),
 ];
 
-module.exports = { registerValidator, loginValidator };
+module.exports = { registerValidator, loginValidator, passwordValidator };
