@@ -23,7 +23,6 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
     },
     isAuthenticated: {
       type: Boolean,
@@ -31,6 +30,7 @@ const userSchema = new Schema(
     },
     phone_number: {
       type: String,
+      required: true,
     },
     avatar: {
       type: {
