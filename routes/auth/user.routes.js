@@ -14,7 +14,7 @@ const validate = require("../../validation/validate");
 /**
  * PUBLIC ROUTES
  */
-router.route("/register").post(registerValidator(), validate, controllers.authController.register);
+router.route("/register").post(controllers.authController.register);
 
 router
   .route("/register/set-password")

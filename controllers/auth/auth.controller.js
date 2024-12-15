@@ -16,6 +16,8 @@ const register = asyncHandler(
   async (req, res) => {
     const { username, email, role, phone_number } = req.body;
 
+    console.log(req.body);
+
     const existedUser = await model.UserModel.findOne({ $or: [{ email }, { username }] });
     if (existedUser) throw new ApiError(StatusCodes.CONFLICT, "user already exists in database");
 
@@ -28,6 +30,8 @@ const register = asyncHandler(
 
     const { unHashedToken, hashedToken, tokenExpiry } = user.generateTemporaryTokens();
 
+    console.log(unHashedToken);
+
     user.emailVerificationToken = hashedToken;
     user.emailVerificationTokenExpiry = tokenExpiry;
 
@@ -39,6 +43,8 @@ const register = asyncHandler(
       { username: user?.username, verificationCode: unHashedToken },
       "email",
     );
+
+    console.log(user);
 
     await user.save({ validateBeforeSave: false });
 

@@ -1,11 +1,9 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 const { RoleEnums, AvailableRoles } = require("../../constants");
 const CartModel = require("../ecommerce/cart.model");
 const mongooseAggregatePaginate = require("mongoose-aggregate-paginate-v2");
-const AddressModel = require("../ecommerce/address.model");
 
 const { Schema, model } = mongoose;
 
@@ -30,7 +28,6 @@ const userSchema = new Schema(
     },
     phone_number: {
       type: String,
-      required: true,
     },
     avatar: {
       type: {
