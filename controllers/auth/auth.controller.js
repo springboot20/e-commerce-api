@@ -49,7 +49,7 @@ const register = asyncHandler(
     await user.save({ validateBeforeSave: false });
 
     const createdUser = await model.UserModel.findById(user._id).select(
-      "-password -emailVerificationToken -emailVerificationExpiry -refreshToken",
+      "-password -emailVerificationToken -refreshToken",
     );
 
     if (!createdUser) {
