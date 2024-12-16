@@ -104,7 +104,7 @@ userSchema.methods.generateTemporaryTokens = function () {
   const salt = bcrypt.genSaltSync(10); // Use synchronous version for hashing
   const hashedToken = bcrypt.hashSync(unHashedToken, salt);
 
-  const tokenExpiry = Date.now() + 2 * 60 * 1000; // 20 minutes from now
+  const tokenExpiry = Date.now() + 2 * 60 * 1000; // 2 minutes from now
 
   return { unHashedToken, hashedToken, tokenExpiry };
 };
