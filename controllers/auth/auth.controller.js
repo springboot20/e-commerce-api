@@ -177,7 +177,7 @@ const resetForgottenPassword = asyncHandler(
    */
 
   async (req, res) => {
-    const { newPassword, token } = req.body;
+    const { password, token } = req.body;
 
     if (!token) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "verification token is not provided");
@@ -203,7 +203,7 @@ const resetForgottenPassword = asyncHandler(
       user._id,
       {
         $set: {
-          password: newPassword,
+          password,
           forgotPasswordToken: undefined,
           forgotPasswordExpiry: undefined,
         },
