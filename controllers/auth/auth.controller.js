@@ -69,11 +69,13 @@ const register = asyncHandler(
 const createPassword = asyncHandler(async (req, res) => {
   const { password, email } = req.body;
 
+  const salt = await bcrypt.genSalt(10); // 10 is a reasonable salt rounds value
+
   const user = await model.UserModel.findOneAndUpdate(
     { email },
     {
       $set: {
-        password,
+        password: await bcrypt.hash(password, salt),
       },
     },
     { new: true },
