@@ -199,11 +199,13 @@ const resetForgottenPassword = asyncHandler(
     if (!validToken)
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid reset password token provided");
 
+    const salt = await bcrypt.genSalt(10);
+
     const updatedUser = await model.UserModel.findByIdAndUpdate(
       user._id,
       {
         $set: {
-          password,
+          password: await bcrypt.hash(password, salt),
           forgotPasswordToken: undefined,
           forgotPasswordExpiry: undefined,
         },
