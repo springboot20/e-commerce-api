@@ -311,6 +311,17 @@ const getAllProducts = asyncHandler(
   },
 );
 
+const orderProductsList = asyncHandler(async (req, res) => {
+  const { ids } = req.body;
+
+  const products = await model.ProductModel.find({ _id: { $in: ids } });
+
+  if (!orderProductsList)
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Error while fetching products");
+
+  return new ApiResponse(StatusCodes.OK, "products fetched successfully", products);
+});
+
 module.exports = {
   createNewProduct,
   getProduct,
@@ -318,4 +329,5 @@ module.exports = {
   updateProduct,
   deleteProduct,
   getAllProducts,
+  orderProductsList,
 };

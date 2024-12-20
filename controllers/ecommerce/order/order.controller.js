@@ -327,66 +327,16 @@ const getUserOrders = asyncHandler(async (req, res) => {
   return new ApiResponse(StatusCodes.OK, " orders fetched successfully", paginatedOrders);
 });
 
-const buildOrderAggregationPipeline = (orderId) => {
-  const basePipeline = [
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(orderId),
-      },
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "customer",
-        foreignField: "_id",
-        as: "customer",
-        pipeline: [
-          {
-            $project: {
-              _id: 1,
-              username: 1,
-              email: 1,
-            },
-          },
-        ],
-      },
-    },
-    {
-      $lookup: {
-        from: "addresses",
-        localField: "address",
-        foreignField: "_id",
-        as: "address",
-      },
-    },
-    {
-      $addFields: {
-        address: { $first: "$address" },
-        customer: { $first: "$customer" },
-        items: {
-          $map: {
-            input: "$items",
-            as: "item",
-            in: {
-              quantity: "$$item.quantity",
-              productId: "$$item.productId",
-            },
-          },
-        },
-        totalItems: { $size: "$items" },
-      },
-    },
-  ];
-  return basePipeline;
-};
-
 const getOrderById = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
 
-  const pipeline = buildOrderAggregationPipeline(orderId);
-  const order = await OrderModel.aggregate(pipeline);
+  const order = await OrderModel.findById(orderId).populate("customer").populate("address");
 
-  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order: order[0] });
+  if (!order) {
+    return ApiError(StatusCodes.NOT_FOUND, "Order not found", []);
+  }
+
+  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order });
 });
 
 module.exports = {
