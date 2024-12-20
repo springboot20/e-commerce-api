@@ -26,15 +26,11 @@ router
   .get(verifyJWT, controllers.orderController.orderFulfillmentHelper);
 
 router
-  .route("/user-orders/:orderId")
-  .get(verifyJWT, checkPermissions([RoleEnums.USER]), controllers.orderController.getOrderById);
-
-router
   .route("/:orderId")
   .get(
     verifyJWT,
-    checkPermissions([RoleEnums.ADMIN, RoleEnums.MODERATOR]),
-    controllers.orderController.getAdminOrderById,
+    checkPermissions([RoleEnums.ADMIN, RoleEnums.USER, RoleEnums.MODERATOR]),
+    controllers.orderController.getOrderById,
   );
 
 router

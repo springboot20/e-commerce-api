@@ -369,20 +369,7 @@ const buildOrderAggregationPipeline = (orderId) => {
             as: "item",
             in: {
               quantity: "$$item.quantity",
-              productId: {
-                $arrayElemAt: [
-                  {
-                    $filter: {
-                      input: "products",
-                      as: "product",
-                      cond: {
-                        $eq: ["$$product._id", "$$item.productId"],
-                      },
-                    },
-                  },
-                  0,
-                ],
-              },
+              productId: "$$item.productId",
             },
           },
         },
@@ -402,15 +389,6 @@ const getOrderById = asyncHandler(async (req, res) => {
   return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order: order[0] });
 });
 
-const getAdminOrderById = asyncHandler(async (req, res) => {
-  const { orderId } = req.params;
-
-  const pipeline = buildOrderAggregationPipeline(orderId);
-  const order = await OrderModel.aggregate(pipeline);
-
-  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order: order[0] });
-});
-
 module.exports = {
   generatePaystackOrder,
   orderFulfillmentHelper,
@@ -418,5 +396,4 @@ module.exports = {
   getAllOrders,
   getUserOrders,
   getOrderById,
-  getAdminOrderById,
 };
