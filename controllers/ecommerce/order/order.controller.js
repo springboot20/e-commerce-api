@@ -231,11 +231,11 @@ const getAllOrders = asyncHandler(async (req, res) => {
         totalItems: { $size: "$items" },
       },
     },
-    // {
-    //   $project: {
-    //     items: 0,
-    //   },
-    // },
+    {
+      $project: {
+        items: 0,
+      },
+    },
   ]);
 
   const paginatedOrders = await OrderModel.aggregatePaginate(
@@ -330,7 +330,76 @@ const getUserOrders = asyncHandler(async (req, res) => {
 const getOrderById = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
 
-  const order = await OrderModel.findById(orderId).populate("customer").populate("address");
+  const order = await OrderModel.aggregate([
+    {
+      $match: {
+        _id: new mongoose.TYpes.ObjectId(orderId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "customer",
+        foreignField: "_id",
+        as: "customer",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              username: 1,
+              email: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        localField: "address",
+        foreignField: "_id",
+        from: "addresses",
+        as: "address",
+      },
+    },
+    {
+      $unwind: "$items",
+    },
+    {
+      $lookup: {
+        from: "products",
+        localField: "items.productId",
+        foreignField: "_id",
+        as: "product",
+      },
+    },
+    {
+      $project: {
+        product: { $first: "$product" },
+        quantity: "$items.quantity",
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        items: {
+          $push: "$$ROOT",
+        },
+        totalOrders: {
+          $sum: {
+            $multiply: ["$product.price", "$quantity"],
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        address: { $first: "$address" },
+        customer: { $first: "$customer" },
+        totalOrders: "$totalOrders",
+        totalItems: { $size: "$items" },
+      },
+    },
+  ]);
 
   if (!order) {
     return ApiError(StatusCodes.NOT_FOUND, "Order not found", []);
