@@ -407,7 +407,7 @@ const getOrderById = asyncHandler(async (req, res) => {
           $push: {
             _id: "$items._id",
             quantity: "$items.quantity",
-            productId: "$items.product",
+            product: "$items.product",
           },
         },
       },
