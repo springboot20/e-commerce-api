@@ -401,7 +401,11 @@ const getOrderById = asyncHandler(async (req, res) => {
     {
       $addFields: {
         "order.items": "$items",
-        totalItems: { $size: "$order.items" },
+      },
+    },
+    {
+      $project: {
+        items: 0,
       },
     },
   ]);
