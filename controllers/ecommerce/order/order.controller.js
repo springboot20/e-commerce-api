@@ -368,7 +368,10 @@ const getOrderById = asyncHandler(async (req, res) => {
       },
     },
     {
-      $unwind: "$items",
+      $unwind: {
+        path: "$items",
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $lookup: {
@@ -389,23 +392,24 @@ const getOrderById = asyncHandler(async (req, res) => {
       $group: {
         _id: "$_id",
         order: { $first: "$$ROOT" },
-        items: {
+        orderItems: {
           $push: {
             _id: "$items._id",
             quantity: "$items.quantity",
-            product: "$items.product",
+            productId: "$items.product",
           },
         },
       },
     },
     {
       $addFields: {
-        "order.items": "$items",
+        "order.items": "$orderItems",
       },
     },
     {
       $project: {
-        items: 0,
+        orderItems: 0,
+        "order.productDetails": 0,
       },
     },
   ]);
@@ -414,7 +418,7 @@ const getOrderById = asyncHandler(async (req, res) => {
     return ApiError(StatusCodes.NOT_FOUND, "Order not found", []);
   }
 
-  return new ApiResponse(StatusCodes.OK, "order fetched successfully", { order });
+  return new ApiResponse(StatusCodes.OK, "order fetched successfully", order);
 });
 
 module.exports = {

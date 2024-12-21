@@ -18,20 +18,25 @@ const OrderSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Address",
     },
-    items: [
-      {
-        quantity: {
-          type: Number,
-          required: true,
-          min: [1, "Quantity can not be less then 1."],
-          default: 1,
-        },
-        productId: {
-          type: Schema.Types.ObjectId,
-          ref: "Product",
-        },
-      },
-    ],
+    items: {
+      type: [
+        [
+          {
+            productId: {
+              type: Schema.Types.ObjectId,
+              ref: "Product",
+            },
+            quantity: {
+              type: Number,
+              required: true,
+              min: [1, "Quantity can not be less then 1."],
+              default: 1,
+            },
+          },
+        ],
+      ],
+      default: [],
+    },
     orderStatus: {
       type: String,
       enum: AvailableOrderStatusEnums,
