@@ -333,7 +333,7 @@ const getOrderById = asyncHandler(async (req, res) => {
   const order = await OrderModel.aggregate([
     {
       $match: {
-        _id: new mongoose.TYpes.ObjectId(orderId),
+        _id: new mongoose.Types.ObjectId(orderId),
       },
     },
     {
