@@ -34,14 +34,6 @@ router
   );
 
 router
-  .route("/products")
-  .get(
-    verifyJWT,
-    checkPermissions([RoleEnums.ADMIN, RoleEnums.USER, RoleEnums.MODERATOR]),
-    controllers.productController.orderProductsList,
-  );
-
-router
   .route("/status/:orderId")
   .patch(
     verifyJWT,
