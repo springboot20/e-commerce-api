@@ -418,7 +418,7 @@ const getOrderById = asyncHandler(async (req, res) => {
     return ApiError(StatusCodes.NOT_FOUND, "Order not found", []);
   }
 
-  return new ApiResponse(StatusCodes.OK, "order fetched successfully", order);
+  return new ApiResponse(StatusCodes.OK, "order fetched successfully", order[0]);
 });
 
 module.exports = {
