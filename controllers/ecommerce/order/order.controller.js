@@ -411,10 +411,10 @@ const getOrderById = asyncHandler(async (req, res) => {
           },
         },
         totalOrder: {
-          $sum:{
-            $multiply:["$items.product.price", "$items.quantity"]
-          }
-        }
+          $sum: {
+            $multiply: ["$items.product.price", "$items.quantity"],
+          },
+        },
       },
     },
     {
