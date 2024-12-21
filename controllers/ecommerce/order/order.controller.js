@@ -362,6 +362,12 @@ const getOrderById = asyncHandler(async (req, res) => {
       },
     },
     {
+      $addFields: {
+        address: { $first: "$address" },
+        customer: { $first: "$customer" },
+      },
+    },
+    {
       $unwind: "$items",
     },
     {
@@ -369,34 +375,33 @@ const getOrderById = asyncHandler(async (req, res) => {
         from: "products",
         localField: "items.productId",
         foreignField: "_id",
-        as: "product",
+        as: "items.product",
       },
     },
     {
-      $project: {
-        product: { $first: "$product" },
-        quantity: "$items.quantity",
+      $addFields: {
+        "items.product": {
+          $first: "$items.product",
+        },
       },
     },
     {
       $group: {
         _id: "$_id",
+        order: { $first: "$$ROOT" },
         items: {
-          $push: "$$ROOT",
-        },
-        totalOrders: {
-          $sum: {
-            $multiply: ["$product.price", "$quantity"],
+          $push: {
+            _id: "$items._id",
+            quantity: "$items.quantity",
+            product: "$items.product",
           },
         },
       },
     },
     {
       $addFields: {
-        address: { $first: "$address" },
-        customer: { $first: "$customer" },
-        totalOrders: "$totalOrders",
-        totalItems: { $size: "$items" },
+        "order.items": "$items",
+        totalItems: { $size: "$order.items" },
       },
     },
   ]);
