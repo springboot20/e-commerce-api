@@ -20,20 +20,18 @@ const OrderSchema = new Schema(
     },
     items: {
       type: [
-        [
-          {
-            productId: {
-              type: Schema.Types.ObjectId,
-              ref: "Product",
-            },
-            quantity: {
-              type: Number,
-              required: true,
-              min: [1, "Quantity can not be less then 1."],
-              default: 1,
-            },
+        {
+          productId: {
+            type: Schema.Types.ObjectId,
+            ref: "Product",
           },
-        ],
+          quantity: {
+            type: Number,
+            required: true,
+            min: [1, "Quantity can not be less then 1."],
+            default: 1,
+          },
+        },
       ],
       default: [],
     },
@@ -65,7 +63,7 @@ const OrderSchema = new Schema(
       type: String,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 OrderSchema.plugin(mongooseAggregatePaginate);

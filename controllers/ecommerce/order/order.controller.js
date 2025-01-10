@@ -40,7 +40,7 @@ async function initializePaystackPayment({ email, amount }) {
     throw new ApiError(
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Error while generating paystack authorization url",
-      [],
+      []
     );
   }
 }
@@ -100,7 +100,7 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
     new ApiResponse(StatusCodes.CREATED, response?.message, {
       order,
       url: response.data?.authorization_url,
-    }),
+    })
   );
 
   return responseData;
@@ -154,7 +154,7 @@ const orderFulfillmentHelper = asyncHandler(async (req, res) => {
     new ApiResponse(StatusCodes.OK, "order created successfully", {
       cart: userCart,
       order,
-    }),
+    })
   );
 
   return responseData;
@@ -179,7 +179,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
         status,
       },
     },
-    { new: true },
+    { new: true }
   );
 
   return new ApiResponse(StatusCodes.OK, "order status changed successfully", { status });
@@ -247,7 +247,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
         totalDocs: "total_orders",
         docs: "orders",
       },
-    }),
+    })
   );
 
   return new ApiResponse(StatusCodes.OK, " orders fetched successfully", paginatedOrders);
@@ -321,7 +321,7 @@ const getUserOrders = asyncHandler(async (req, res) => {
         totalDocs: "total_orders",
         docs: "orders",
       },
-    }),
+    })
   );
 
   return new ApiResponse(StatusCodes.OK, " orders fetched successfully", paginatedOrders);
