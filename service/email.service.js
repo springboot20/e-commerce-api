@@ -5,6 +5,7 @@ const { ApiError } = require('../utils/api.error.js');
 const expressHandlebars = require('nodemailer-express-handlebars');
 const path = require('path');
 const fs = require('fs');
+const schedule = require('node-schedule');
 
 const OAuth2 = google.auth.OAuth2;
 
@@ -142,3 +143,15 @@ const sendMail = async (email, subject, payload, template) => {
 };
 
 module.exports = { sendMail };
+
+schedule.scheduleJob('refresh oauth access token', 5 * 60 * 1000, async () => {
+  try {
+    await refreshAccessToken(
+      process.env.REFRESH_TOKEN,
+      process.env.CLIENT_ID,
+      process.env.CLIENT_SECRET
+    );
+  } catch (error) {
+    console.error('failed to refresh token during schedule job', error);
+  }
+});
