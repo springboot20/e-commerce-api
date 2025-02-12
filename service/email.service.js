@@ -144,7 +144,10 @@ const sendMail = async (email, subject, payload, template) => {
 
 module.exports = { sendMail };
 
-schedule.scheduleJob('refresh oauth access token', 5 * 60 * 1000, async () => {
+const rule = new schedule.RecurrenceRule();
+rule.minute = 5;
+
+schedule.scheduleJob(rule, async () => {
   try {
     await refreshAccessToken(
       process.env.REFRESH_TOKEN,
