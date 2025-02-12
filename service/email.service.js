@@ -1,11 +1,11 @@
-const { google } = require('googleapis');
-const nodemailer = require('nodemailer');
-const { StatusCodes } = require('http-status-codes');
-const { ApiError } = require('../utils/api.error.js');
-const expressHandlebars = require('nodemailer-express-handlebars');
-const path = require('path');
-const fs = require('fs');
-const schedule = require('node-schedule');
+const { google } = require("googleapis");
+const nodemailer = require("nodemailer");
+const { StatusCodes } = require("http-status-codes");
+const { ApiError } = require("../utils/api.error.js");
+const expressHandlebars = require("nodemailer-express-handlebars");
+const path = require("path");
+const fs = require("fs");
+const schedule = require("node-schedule");
 
 const OAuth2 = google.auth.OAuth2;
 
@@ -21,12 +21,12 @@ const saveTokens = (tokens) => {
     expiry_date: tokens?.expiry_date,
   };
 
-  fs.writeFileSync('tokens.json', JSON.stringify(token_data));
+  fs.writeFileSync("tokens.json", JSON.stringify(token_data));
 };
 
 const loadTokens = () => {
-  if (fs.existsSync('tokens.json')) {
-    const token_data = fs.readFileSync('tokens.json');
+  if (fs.existsSync("tokens.json")) {
+    const token_data = fs.readFileSync("tokens.json");
     return JSON.parse(token_data);
   }
   return null;
@@ -36,7 +36,7 @@ const refreshAccessToken = async (refreshToken, clientId, clientSecret) => {
   const OAuth2Client = new OAuth2(
     clientId,
     clientSecret,
-    'https://developers.google.com/oauthplayground'
+    "https://developers.google.com/oauthplayground"
   );
 
   OAuth2Client.setCredentials({
@@ -44,12 +44,14 @@ const refreshAccessToken = async (refreshToken, clientId, clientSecret) => {
   });
 
   try {
-    const { tokens } = await OAuth2Client.refreshAccessToken();
-    OAuth2Client.setCredentials(tokens);
+    const tokens = await OAuth2Client.refreshAccessToken();
+    OAuth2Client.setCredentials(tokens.credentials);
+
+    console.log(tokens.credentials);
 
     saveTokens(tokens);
 
-    return tokens.access_token;
+    return tokens.credentials.access_token;
   } catch (error) {
     throw new ApiError(
       StatusCodes.UNAUTHORIZED,
@@ -64,13 +66,13 @@ const createTransporter = async () => {
   const OAuth2Client = new OAuth2(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
-    'https://developers.google.com/oauthplayground'
+    "https://developers.google.com/oauthplayground"
   );
 
   OAuth2Client.setCredentials({
     access_token: tokens ? tokens?.access_token : process.env.ACCESS_TOKEN,
     refresh_token: tokens ? tokens?.refresh_token : process.env.REFRESH_TOKEN,
-    token_type: 'Bearer',
+    token_type: "Bearer",
     expiry_date: tokens ? tokens?.expiry_date : process.env.EXPIRY_DATE,
   });
 
@@ -80,7 +82,7 @@ const createTransporter = async () => {
   });
 
   if (isTokenExpired(OAuth2Client.credentials)) {
-    console.log('Access token expired Refreshing...');
+    console.log("Access token expired Refreshing...");
 
     await refreshAccessToken(
       OAuth2Client.credentials.refresh_token,
@@ -90,9 +92,9 @@ const createTransporter = async () => {
   }
 
   return nodemailer.createTransport({
-    service: 'gmail',
+    service: "gmail",
     auth: {
-      type: 'OAuth2',
+      type: "OAuth2",
       user: process.env.EMAIL,
       pass: process.env.EMAIL_HOST_PASSWORD,
       accessToken: OAuth2Client.credentials.access_token,
@@ -112,16 +114,16 @@ const sendMail = async (email, subject, payload, template) => {
     const transporter = await createTransporter();
 
     transporter.use(
-      'compile',
+      "compile",
       expressHandlebars({
         viewEngine: {
-          extName: '.hbs',
-          partialsDir: path.resolve(__dirname, '../views/partials/'),
-          layoutsDir: path.resolve(__dirname, '../views/layouts/'),
-          defaultLayout: 'layout',
+          extName: ".hbs",
+          partialsDir: path.resolve(__dirname, "../views/partials/"),
+          layoutsDir: path.resolve(__dirname, "../views/layouts/"),
+          defaultLayout: "layout",
         },
-        extName: '.hbs',
-        viewPath: path.resolve(__dirname, '../views/partials/'),
+        extName: ".hbs",
+        viewPath: path.resolve(__dirname, "../views/partials/"),
       })
     );
 
@@ -136,7 +138,7 @@ const sendMail = async (email, subject, payload, template) => {
     };
 
     const info = await transporter.sendMail(options());
-    console.log('Message Id : %s' + info.messageId);
+    console.log("Message Id : %s" + info.messageId);
   } catch (error) {
     throw error;
   }
@@ -155,6 +157,6 @@ schedule.scheduleJob(rule, async () => {
       process.env.CLIENT_SECRET
     );
   } catch (error) {
-    console.error('failed to refresh token during schedule job', error);
+    console.error("failed to refresh token during schedule job", error);
   }
 });
