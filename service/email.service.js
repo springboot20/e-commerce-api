@@ -49,7 +49,7 @@ const refreshAccessToken = async (refreshToken, clientId, clientSecret) => {
 
     console.log(tokens.credentials);
 
-    saveTokens(tokens);
+    saveTokens(tokens.credentials);
 
     return tokens.credentials.access_token;
   } catch (error) {
