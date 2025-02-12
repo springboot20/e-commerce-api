@@ -21,7 +21,7 @@ const saveTokens = (tokens) => {
     expiry_date: tokens?.expiry_date,
   };
 
-  fs.writeSync('tokens.json', JSON.stringify(token_data));
+  fs.writeFileSync('tokens.json', JSON.stringify(token_data));
 };
 
 const loadTokens = () => {
