@@ -45,7 +45,7 @@ const refreshAccessToken = async (refreshToken, clientId, clientSecret) => {
 
   try {
     const { tokens } = await OAuth2Client.refreshAccessToken();
-    OAuth2.setCredential(tokens);
+    OAuth2.setCredentials(tokens);
 
     saveTokens(tokens);
 
