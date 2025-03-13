@@ -1,15 +1,17 @@
-const model = require("../../../models/index");
-const { StatusCodes } = require("http-status-codes");
-const { asyncHandler } = require("../../../utils/asyncHandler");
-const { ApiError } = require("../../../utils/api.error");
-const { ApiResponse } = require("../../../utils/api.response");
-const { getMognogoosePagination, removeCircularReferences } = require("../../../helpers");
+const model = require('../../../models/index');
+const { StatusCodes } = require('http-status-codes');
+const { asyncHandler } = require('../../../utils/asyncHandler');
+const { ApiError } = require('../../../utils/api.error');
+const { ApiResponse } = require('../../../utils/api.response');
+const { getMognogoosePagination } = require('../../../helpers');
+const { emitSocketEventToUser, emitSocketEventToAdmin } = require('../../../socket/socket.config');
+const { NEW_PRODUCT_ADDED, PRODUCT_DELETED } = require('../../../enums/socket-events');
 
-const { default: mongoose } = require("mongoose");
+const { default: mongoose } = require('mongoose');
 const {
   uploadFileToCloudinary,
   deleteFileFromCloudinary,
-} = require("../../../configs/cloudinary.config");
+} = require('../../../configs/cloudinary.config');
 
 const createNewProduct = asyncHandler(
   /**
@@ -33,18 +35,18 @@ const createNewProduct = asyncHandler(
     }
 
     if (!req.file) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, "no image upload", []);
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'no image upload', []);
     }
 
     let uploadImage;
 
     if (req.file) {
-      uploadImage = await uploadFileToCloudinary(
-        req.file.buffer,
-        `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
-      );
+      // uploadImage = await uploadFileToCloudinary(
+      //   req.file.buffer,
+      //   `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
+      // );
     }
-    const parsedSizes = typeof sizes === "string" ? JSON.parse(sizes) : sizes;
+    const parsedSizes = typeof sizes === 'string' ? JSON.parse(sizes) : sizes;
     console.log(parsedSizes);
     const user = req.user._id;
 
@@ -74,10 +76,16 @@ const createNewProduct = asyncHandler(
     // Create the product in the database
     const createdProduct = await model.ProductModel.create(productData);
 
-    return new ApiResponse(StatusCodes.CREATED, "product created successfully", {
+    emitSocketEventToUser(req, NEW_PRODUCT_ADDED, {
+      event_type: 'product',
+      data: createdProduct,
+      message: 'new product added to store',
+    });
+
+    return new ApiResponse(StatusCodes.CREATED, 'product created successfully', {
       product: createdProduct,
     });
-  },
+  }
 );
 
 const getProduct = asyncHandler(
@@ -89,14 +97,14 @@ const getProduct = asyncHandler(
    */
   async (req, res) => {
     const { productId } = req.params;
-    const product = await model.ProductModel.findById(productId).populate("category");
+    const product = await model.ProductModel.findById(productId).populate('category');
 
     if (!product) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
+      throw new ApiError(StatusCodes.NOT_FOUND, 'product not found', []);
     }
 
-    return new ApiResponse(StatusCodes.OK, "product fetched successfully", { product });
-  },
+    return new ApiResponse(StatusCodes.OK, 'product fetched successfully', { product });
+  }
 );
 
 const getProductsByCategory = asyncHandler(
@@ -110,9 +118,9 @@ const getProductsByCategory = asyncHandler(
     const { categoryId } = req.params;
     const { page = 1, limit = 10 } = req.query;
 
-    const productCategory = await model.CategoryModel.findById(categoryId).select("name _id");
+    const productCategory = await model.CategoryModel.findById(categoryId).select('name _id');
 
-    if (!productCategory) throw new ApiError(StatusCodes.NOT_FOUND, "category not found");
+    if (!productCategory) throw new ApiError(StatusCodes.NOT_FOUND, 'category not found');
 
     const productAggregate = model.ProductModel.aggregate([
       {
@@ -128,20 +136,20 @@ const getProductsByCategory = asyncHandler(
         limit,
         page,
         customLabels: {
-          totalDocs: "totalProducts",
-          docs: "products",
+          totalDocs: 'totalProducts',
+          docs: 'products',
         },
-      }),
+      })
     );
 
     console.log(paginatedProducts);
 
     return new ApiResponse(
       StatusCodes.OK,
-      "products category fetched successfully",
-      paginatedProducts,
+      'products category fetched successfully',
+      paginatedProducts
     );
-  },
+  }
 );
 
 const updateProduct = asyncHandler(
@@ -157,7 +165,7 @@ const updateProduct = asyncHandler(
 
     // Find the product
     const product = await model.ProductModel.findById(productId);
-    if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
+    if (!product) throw new ApiError(StatusCodes.NOT_FOUND, 'product not found', []);
 
     let uploadImage;
 
@@ -180,7 +188,7 @@ const updateProduct = asyncHandler(
 
       uploadImage = await uploadFileToCloudinary(
         req?.file?.buffer,
-        `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
+        `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`
       );
 
       updatedFields.imageSrc = {
@@ -207,11 +215,11 @@ const updateProduct = asyncHandler(
     }
 
     // If sizes is a string, parse it into an array of objects
-    if (typeof sizes === "string") {
+    if (typeof sizes === 'string') {
       try {
         sizes = JSON.parse(sizes);
       } catch (error) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid sizes format");
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid sizes format');
       }
     }
 
@@ -230,14 +238,14 @@ const updateProduct = asyncHandler(
       {
         $set: updatedFields,
       },
-      { new: true },
-    ).populate("category");
+      { new: true }
+    ).populate('category');
 
     // Respond with the updated product
-    return new ApiResponse(StatusCodes.OK, "Product updated successfully", {
+    return new ApiResponse(StatusCodes.OK, 'Product updated successfully', {
       product: updatedProduct,
     });
-  },
+  }
 );
 
 const deleteProduct = asyncHandler(
@@ -252,16 +260,22 @@ const deleteProduct = asyncHandler(
 
     const product = await model.ProductModel.findById(productId);
 
-    if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
+    if (!product) throw new ApiError(StatusCodes.NOT_FOUND, 'product not found', []);
 
     if (product?.imageSrc?.public_id !== null) {
-      await deleteFileFromCloudinary(product?.imageSrc?.public_id);
+      // await deleteFileFromCloudinary(product?.imageSrc?.public_id);
     }
+
+    emitSocketEventToAdmin(req, PRODUCT_DELETED, {
+      event_type: 'product',
+      message: 'product deleted successfully',
+      data: {},
+    });
 
     await model.ProductModel.findOneAndDelete({ _id: productId });
 
-    return new ApiResponse(StatusCodes.OK, "product deleted successfully", {});
-  },
+    return new ApiResponse(StatusCodes.OK, 'product deleted successfully', {});
+  }
 );
 
 const getAllProducts = asyncHandler(
@@ -288,7 +302,7 @@ const getAllProducts = asyncHandler(
           ? {
               name: {
                 $regex: name.trim(),
-                $options: "i",
+                $options: 'i',
               },
             }
           : {},
@@ -301,14 +315,14 @@ const getAllProducts = asyncHandler(
         limit,
         page,
         customLabels: {
-          totalDocs: "totalProducts",
-          docs: "products",
+          totalDocs: 'totalProducts',
+          docs: 'products',
         },
-      }),
+      })
     );
 
-    return new ApiResponse(StatusCodes.OK, "products fetched successfully", paginatedProducts);
-  },
+    return new ApiResponse(StatusCodes.OK, 'products fetched successfully', paginatedProducts);
+  }
 );
 
 module.exports = {

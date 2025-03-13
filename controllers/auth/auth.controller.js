@@ -37,12 +37,12 @@ const register = asyncHandler(
 
     await user.save({ validateBeforeSave: false });
 
-    await sendMail(
-      user?.email,
-      "Email verification",
-      { username: user?.username, verificationCode: unHashedToken },
-      "email",
-    );
+    // await sendMail(
+    //   user?.email,
+    //   "Email verification",
+    //   { username: user?.username, verificationCode: unHashedToken },
+    //   "email",
+    // );
 
     console.log(user);
 

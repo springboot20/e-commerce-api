@@ -3,3 +3,6 @@
 
 #.env
 /.env
+
+# json 
+/tokens.json
