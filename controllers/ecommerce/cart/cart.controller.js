@@ -1,9 +1,11 @@
-const { asyncHandler } = require("../../../utils/asyncHandler.js");
-const model = require("../../../models/index");
-const { default: mongoose } = require("mongoose");
-const { ApiResponse } = require("../../../utils/api.response.js");
-const { StatusCodes } = require("http-status-codes");
-const { ApiError } = require("../../../utils/api.error.js");
+const { asyncHandler } = require('../../../utils/asyncHandler.js');
+const model = require('../../../models/index');
+const { default: mongoose } = require('mongoose');
+const { ApiResponse } = require('../../../utils/api.response.js');
+const { StatusCodes } = require('http-status-codes');
+const { ApiError } = require('../../../utils/api.error.js');
+const { emitSocketEventToUser } = require('../../../socket/socket.config.js');
+const { ADD_ITEM_TO_CART_EVENT, REMOVE_ITEM_TO_CART_EVENT } = require('../../../enums/socket-events.js');
 
 const getCart = async (userId) => {
   const userCart = await model.CartModel.aggregate([
@@ -13,38 +15,38 @@ const getCart = async (userId) => {
       },
     },
     {
-      $unwind: "$items",
+      $unwind: '$items',
     },
     {
       $lookup: {
-        from: "products",
-        localField: "items.productId",
-        foreignField: "_id",
-        as: "product",
+        from: 'products',
+        localField: 'items.productId',
+        foreignField: '_id',
+        as: 'product',
       },
     },
     {
       $project: {
-        product: { $first: "$product" },
-        quantity: "$items.quantity",
+        product: { $first: '$product' },
+        quantity: '$items.quantity',
       },
     },
     {
       $group: {
-        _id: "$_id",
+        _id: '$_id',
         items: {
-          $push: "$$ROOT",
+          $push: '$$ROOT',
         },
         totalCart: {
           $sum: {
-            $multiply: ["$product.price", "$quantity"],
+            $multiply: ['$product.price', '$quantity'],
           },
         },
       },
     },
     {
       $addFields: {
-        totalCart: "$totalCart",
+        totalCart: '$totalCart',
       },
     },
   ]);
@@ -61,7 +63,7 @@ const getCart = async (userId) => {
 const getUserCart = asyncHandler(async (req, res) => {
   const userCart = await getCart(req.user._id);
 
-  return new ApiResponse(StatusCodes.OK, "user cart fetched successfully", { cart: userCart });
+  return new ApiResponse(StatusCodes.OK, 'user cart fetched successfully', { cart: userCart });
 });
 
 const addItemToCart = asyncHandler(async (req, res) => {
@@ -75,12 +77,12 @@ const addItemToCart = asyncHandler(async (req, res) => {
   const product = await model.ProductModel.findById(productId);
   console.log(product);
 
-  if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found");
+  if (!product) throw new ApiError(StatusCodes.NOT_FOUND, 'product not found');
 
   if (quantity > product.stock) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      `only ${product.stock} is remaining. But you are adding ${quantity}. Product out of stock`,
+      `only ${product.stock} is remaining. But you are adding ${quantity}. Product out of stock`
     );
   }
 
@@ -99,7 +101,13 @@ const addItemToCart = asyncHandler(async (req, res) => {
 
   const userCart = await getCart(req.user._id);
 
-  return new ApiResponse(StatusCodes.OK, "item added to cart", { cart: userCart });
+  emitSocketEventToUser(req, ADD_ITEM_TO_CART_EVENT, {
+    event_type: 'cart',
+    data: userCart,
+    message: 'item added to cart',
+  });
+
+  return new ApiResponse(StatusCodes.OK, 'item added to cart', { cart: userCart });
 });
 
 const removeItemFromCart = asyncHandler(async (req, res) => {
@@ -107,7 +115,7 @@ const removeItemFromCart = asyncHandler(async (req, res) => {
 
   const product = await model.ProductModel.findById(productId);
 
-  if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found");
+  if (!product) throw new ApiError(StatusCodes.NOT_FOUND, 'product not found');
 
   const cart = await model.CartModel.findOneAndUpdate(
     { owner: req.user._id },
@@ -118,14 +126,20 @@ const removeItemFromCart = asyncHandler(async (req, res) => {
         },
       },
     },
-    { new: true },
+    { new: true }
   );
 
   await cart.save({ validateBeforeSave: true });
 
   const userCart = await getCart(req.user._id);
 
-  return new ApiResponse(StatusCodes.OK, "item removed from cart", { cart: userCart });
+  emitSocketEventToUser(req, REMOVE_ITEM_TO_CART_EVENT, {
+    event_type: 'cart',
+    data: userCart,
+    message: 'item removed to cart',
+  });
+
+  return new ApiResponse(StatusCodes.OK, 'item removed from cart', { cart: userCart });
 });
 
 const clearCart = asyncHandler(async (req, res, next) => {
@@ -136,12 +150,12 @@ const clearCart = asyncHandler(async (req, res, next) => {
         items: [],
       },
     },
-    { new: true },
+    { new: true }
   );
 
   const userCart = await getCart(req.user._id);
 
-  return new ApiResponse(StatusCodes.OK, "cart cleared", { cart: userCart });
+  return new ApiResponse(StatusCodes.OK, 'cart cleared', { cart: userCart });
 });
 
 module.exports = {

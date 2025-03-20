@@ -5,7 +5,11 @@ const { ApiError } = require('../../../utils/api.error');
 const { ApiResponse } = require('../../../utils/api.response');
 const { getMognogoosePagination } = require('../../../helpers');
 const { emitSocketEventToUser, emitSocketEventToAdmin } = require('../../../socket/socket.config');
-const { NEW_PRODUCT_ADDED, PRODUCT_DELETED } = require('../../../enums/socket-events');
+const {
+  NEW_PRODUCT_ADDED,
+  PRODUCT_DELETED,
+  UPDATED_PRODUCT,
+} = require('../../../enums/socket-events');
 
 const { default: mongoose } = require('mongoose');
 const {
@@ -241,6 +245,12 @@ const updateProduct = asyncHandler(
       { new: true }
     ).populate('category');
 
+    emitSocketEventToUser(req, UPDATED_PRODUCT, {
+      event_type: 'product',
+      data: updatedProduct,
+      message: 'Product updated successfully',
+    });
+
     // Respond with the updated product
     return new ApiResponse(StatusCodes.OK, 'Product updated successfully', {
       product: updatedProduct,
@@ -266,13 +276,21 @@ const deleteProduct = asyncHandler(
       // await deleteFileFromCloudinary(product?.imageSrc?.public_id);
     }
 
+    const deletedProduct = await model.ProductModel.findOneAndDelete({ _id: productId });
+
+    console.log(deletedProduct);
+
     emitSocketEventToAdmin(req, PRODUCT_DELETED, {
       event_type: 'product',
       message: 'product deleted successfully',
-      data: {},
+      data: deletedProduct,
     });
 
-    await model.ProductModel.findOneAndDelete({ _id: productId });
+    emitSocketEventToUser(req, PRODUCT_DELETED, {
+      event_type: 'product',
+      message: 'product deleted successfully',
+      data: deletedProduct,
+    });
 
     return new ApiResponse(StatusCodes.OK, 'product deleted successfully', {});
   }
