@@ -35,7 +35,8 @@
     "node-schedule": "^2.1.1",
     "nodemailer": "^6.9.9",
     "nodemailer-express-handlebars": "^6.1.2",
-    "passport": "^0.7.0"
+    "passport": "^0.7.0",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "cryptojs": "^2.5.3",
