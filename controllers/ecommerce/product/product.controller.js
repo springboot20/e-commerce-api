@@ -45,13 +45,16 @@ const createNewProduct = asyncHandler(
     let uploadImage;
 
     if (req.file) {
-      // uploadImage = await uploadFileToCloudinary(
-      //   req.file.buffer,
-      //   `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
-      // );
+      uploadImage = await uploadFileToCloudinary(
+        req.file.buffer,
+        `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`,
+      );
     }
     const parsedSizes = typeof sizes === 'string' ? JSON.parse(sizes) : sizes;
+    const parsedColors = typeof colors === 'string' ? JSON.parse(colors) : colors;
+
     console.log(parsedSizes);
+    console.log(colors);
     const user = req.user._id;
 
     const productData = {
@@ -66,7 +69,7 @@ const createNewProduct = asyncHandler(
         public_id: uploadImage?.public_id,
       },
       stock,
-      colors: colors || [], // Ensure colors is an array
+      colors:Array.isArray(parsedColors) ? parsedColors : [], // Ensure colors is an array
       sizes: Array.isArray(parsedSizes)
         ? parsedSizes.map((size) => ({
             name: size.name?.trim(), // Ensure the name is trimmed
