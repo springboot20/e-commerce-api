@@ -276,7 +276,7 @@ const deleteProduct = asyncHandler(
     if (!product) throw new ApiError(StatusCodes.NOT_FOUND, 'product not found', []);
 
     if (product?.imageSrc?.public_id !== null) {
-      // await deleteFileFromCloudinary(product?.imageSrc?.public_id);
+      await deleteFileFromCloudinary(product?.imageSrc?.public_id);
     }
 
     const deletedProduct = await model.ProductModel.findOneAndDelete({ _id: productId });
