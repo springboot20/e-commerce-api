@@ -54,6 +54,7 @@ const OrderSchema = new Schema(
     },
     orderPrice: {
       type: Number,
+      default: 0.0,
       required: true,
     },
     discountedOrderPrice: {

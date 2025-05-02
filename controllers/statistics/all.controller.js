@@ -23,15 +23,20 @@ const getAllStatistics = asyncHandler(async (req, res) => {
   // Fetch total number of users
   const customers = await model.UserModel.countDocuments({});
 
+  console.log(totalSales);
+  console.log(averagePrice);
+
   const statistics = {
     totalProducts,
     product: {
-      averagePrice: averagePrice[0].avgPrice,
-      totalSales: totalSales[0].totalSales,
+      averagePrice: averagePrice[0].avgPrice ?? 0.0,
+      totalSales: totalSales.length ? totalSales[0].totalSales : 0.0,
     },
     totalOrders,
     customers,
   };
+
+  console.log(statistics);
 
   return new ApiResponse(StatusCodes.OK, "Product statistics fetched successfully", { statistics });
 });
