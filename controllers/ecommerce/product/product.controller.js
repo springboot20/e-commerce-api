@@ -168,7 +168,8 @@ const updateProduct = asyncHandler(
    */
   async (req, res) => {
     const { productId } = req.params;
-    const { name, price, description, category, stock, featured, colors, sizes } = req.body;
+    const { name, price, description, category, stock, featured, colors } = req.body;
+    let { sizes } = req.body;
 
     // Find the product
     const product = await model.ProductModel.findById(productId);
@@ -221,22 +222,44 @@ const updateProduct = asyncHandler(
       }
     }
 
-    // If sizes is a string, parse it into an array of objects
-    if (typeof sizes === "string") {
+    // Parse sizes properly based on its type
+    if (sizes) {
       try {
-        sizes = JSON.parse(sizes);
+        // If sizes is a string, try to parse it as JSON
+        if (typeof sizes === "string") {
+          sizes = JSON.parse(sizes);
+        }
+
+        // Ensure sizes is an array
+        if (Array.isArray(sizes)) {
+          updatedFields.sizes = sizes;
+        } else {
+          throw new ApiError(StatusCodes.BAD_REQUEST, "Sizes must be an array");
+        }
       } catch (error) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid sizes format");
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid sizes format: " + error.message);
       }
     }
 
-    // Conditionally update colors and sizes if present in the request body
-    if (colors?.length) {
-      updatedFields.colors = colors; // Update colors if provided
-    }
+    // Handle colors if present
+    if (colors) {
+      try {
+        let parsedColors = colors;
 
-    if (sizes?.length) {
-      updatedFields.sizes = sizes; // Update sizes if provided
+        // If colors is a string, try to parse it as JSON
+        if (typeof colors === "string") {
+          parsedColors = JSON.parse(colors);
+        }
+
+        // Ensure colors is an array
+        if (Array.isArray(parsedColors)) {
+          updatedFields.colors = parsedColors;
+        } else {
+          throw new ApiError(StatusCodes.BAD_REQUEST, "Colors must be an array");
+        }
+      } catch (error) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid colors format: " + error.message);
+      }
     }
 
     // Update the product in the database
