@@ -55,9 +55,9 @@ const ProductSchema = new Schema(
       type: Number,
       default: 0,
     },
-    ratings: {
-      type: Number,
-      default: 0,
+    rating: {
+      type: Schema.Types.ObjectId,
+      ref: "Rating",
     },
     colors: {
       type: [String],
@@ -68,7 +68,7 @@ const ProductSchema = new Schema(
       default: [],
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 ProductSchema.plugin(mongooseAggregatePaginate);
