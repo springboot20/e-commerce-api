@@ -104,7 +104,9 @@ const getProduct = asyncHandler(
    */
   async (req, res) => {
     const { productId } = req.params;
-    const product = await model.ProductModel.findById(productId).populate("category");
+    const product = await model.ProductModel.findById(productId)
+      .populate("category")
+      .populate("rating");
 
     if (!product) {
       throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
