@@ -42,7 +42,7 @@ router
 
 router
   .route("/ratings/rate-without-comment")
-  .post(controllers.productRatingsController.rateProductWithoutComment);
+  .post(verifyJWT, controllers.productRatingsController.rateProductWithoutComment);
 
 // Get ratings for a product (no authentication required)
 router.get("/ratings/:productId", controllers.productRatingsController.getProductRatings);
