@@ -81,7 +81,7 @@ const rateProductWithComment = asyncHandler(async (req) => {
   // Check if user has already rated this product
   const existingRating = await model.RatingModel.findOne({
     productId: product._id,
-    userId,
+    userId: req?.user?._id,
   });
 
   let ratingResult;
@@ -108,7 +108,7 @@ const rateProductWithComment = asyncHandler(async (req) => {
     ratingResult = await model.RatingModel.create({
       rate: rating,
       productId: product._id,
-      userId,
+      userId: req?.user?._id,
       comment,
     });
 
@@ -143,7 +143,7 @@ const rateProductWithoutComment = asyncHandler(async (req, res) => {
   // Check if user has already rated this product
   const existingRating = await model.RatingModel.findOne({
     productId: product._id,
-    userId,
+    userId: req?.user?._id,
   });
 
   let ratingResult;
@@ -170,7 +170,7 @@ const rateProductWithoutComment = asyncHandler(async (req, res) => {
     ratingResult = await model.RatingModel.create({
       rate: rating,
       productId: product._id,
-      userId,
+      userId: req?.user?._id,
     });
 
     // Emit socket event for new rating without comment

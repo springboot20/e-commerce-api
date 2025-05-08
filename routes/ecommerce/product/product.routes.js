@@ -37,17 +37,17 @@ router
 
 // rating routes
 router
-  .route("/rating/rate-with-comment")
+  .route("/ratings/rate-with-comment")
   .post(controllers.productRatingsController.rateProductWithComment);
 
 router
-  .route("/rating/rate-without-comment")
+  .route("/ratings/rate-without-comment")
   .post(controllers.productRatingsController.rateProductWithoutComment);
 
 // Get ratings for a product (no authentication required)
-router.get("/rating/:productId", controllers.productRatingsController.getProductRatings);
+router.get("/ratings/:productId", controllers.productRatingsController.getProductRatings);
 
 // Delete rating (authentication required)
-router.delete("/rating/:ratingId", verifyJWT, controllers.productRatingsController.deleteRating);
+router.delete("/ratings/:ratingId", verifyJWT, controllers.productRatingsController.deleteRating);
 
 module.exports = router;
