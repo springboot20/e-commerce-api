@@ -8,7 +8,9 @@ const { AvailableRoles } = require("../constants");
 const verifyJWT = asyncHandler(async (req, res, next) => {
   const token = req.cookies.access_token || req.header("Authorization")?.replace("Bearer ", "");
 
-  if (!token) throw new ApiError(StatusCodes.UNAUTHORIZED, "token not provided");
+  console.log(token);
+
+  if (!token) throw new ApiError(StatusCodes.UNAUTHORIZED, "token not provided at verifyJWT");
 
   try {
     const decodedToken = validateToken(token, process.env.ACCESS_TOKEN_SECRET);
@@ -18,7 +20,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
       throw new CustomErrors.UnAuthenticated(StatusCodes.UNAUTHORIZED, "Invalid token provided");
 
     req.user = user;
-    next()
+    next();
   } catch (error) {
     next(error);
     throw new ApiError(StatusCodes.UNAUTHORIZED, "Authentication Invalid");

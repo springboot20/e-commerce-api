@@ -7,6 +7,7 @@ const categoryController = require("./ecommerce/category/index.controller");
 const orderController = require("./ecommerce/order/order.controller");
 const cartController = require("./ecommerce/cart/cart.controller");
 const statisticsController = require("./statistics/statistics.controller");
+const productRatingsController = require("./ecommerce/ratings/product.rating.controller");
 
 module.exports = {
   authController,
@@ -17,5 +18,6 @@ module.exports = {
   orderController,
   emailController,
   categoryController,
+  productRatingsController,
   addressController,
 };

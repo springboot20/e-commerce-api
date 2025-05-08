@@ -13,7 +13,7 @@ router
     upload.single("imageSrc"),
     verifyJWT,
     checkPermissions([RoleEnums.ADMIN, RoleEnums.MODERATOR]),
-    controllers.productController.createNewProduct,
+    controllers.productController.createNewProduct
   );
 
 router
@@ -23,16 +23,25 @@ router
     upload.single("imageSrc"),
     verifyJWT,
     checkPermissions([RoleEnums.ADMIN, RoleEnums.MODERATOR]),
-    controllers.productController.updateProduct,
+    controllers.productController.updateProduct
   )
   .delete(
     verifyJWT,
     checkPermissions([RoleEnums.ADMIN, RoleEnums.MODERATOR]),
-    controllers.productController.deleteProduct,
+    controllers.productController.deleteProduct
   );
 
 router
   .route("/category/:categoryId")
   .get(verifyJWT, controllers.productController.getProductsByCategory);
+
+// rating routes
+router
+  .route("/rating-with-comment")
+  .post(controllers.productRatingsController.rateProductWithComment);
+
+router
+  .route("/rating-without-comment")
+  .post(controllers.productRatingsController.rateProductWithoutComment);
 
 module.exports = router;
