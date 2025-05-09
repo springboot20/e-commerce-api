@@ -94,6 +94,7 @@ const rateProductWithComment = asyncHandler(async (req) => {
         $set: {
           rate: rating,
           comment: comment,
+          userId: req?.user?._id,
         },
       },
       { new: true }
