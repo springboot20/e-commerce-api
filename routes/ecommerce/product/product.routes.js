@@ -38,7 +38,7 @@ router
 // rating routes
 router
   .route("/ratings/rate-with-comment")
-  .post(controllers.productRatingsController.rateProductWithComment);
+  .post(verifyJWT, controllers.productRatingsController.rateProductWithComment);
 
 router
   .route("/ratings/rate-without-comment")
