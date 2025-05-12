@@ -76,6 +76,10 @@ app.use("/api/v1/addresses", routers.addressesRouter);
 app.use("/api/v1/carts", routers.cartsRouter);
 app.use("/api/v1/statistics", routers.statisticsRouter);
 
+app.get("/", (_, res) => {
+  res.redirect("/api/v1/api-docs");
+});
+
 const serverConnection = () => {
   server.listen(PORT, () => {
     console.info(`📑 Visit the documentation at: http://localhost:${PORT}/api/v1/api-docs`);
