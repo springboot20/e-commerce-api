@@ -1,0 +1,397 @@
+openapi: 3.1.0
+info:
+  title: "E-commerce API Documentation"
+  version: 1.0.0
+  description: "E-commerce API documentation with authentication, user management, and other features"
+  contact:
+    name: "CodeSuite"
+    url: "https://github.com/springboot20"
+    email: "opeyemiakanbi328@gmail.com"
+  license:
+    name: "MIT"
+    url: "https://spdx.org/licenses/MIT.html"
+
+servers:
+- url: "http://localhost:5050/api/v1"
+  description: "Development server"
+- url: "https://e-commerce-api-6wjr.onrender.com/api/v1"
+  description: "Production server"
+
+tags:
+- name: "Authentication"
+  description: "Authentication and authorization endpoints"
+- name: "Users"
+  description: "User management endpoints"
+- name: "Products"
+  description: "Product management endpoints"
+- name: "Orders"
+  description: "Order management endpoints"
+- name: "Cart"
+  description: "Shopping cart endpoints"
+- name: "Payments"
+  description: "Payment processing endpoints"
+- name: "Reviews"
+  description: "Product review endpoints"
+- name: "Categories"
+  description: "Product category endpoints"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: "access_token"
+      description: "JWT token for authentication"
+
+  schemas:
+    CreateUser:
+      type: object
+      required:
+      - username
+      - email
+      properties:
+        _id:
+          type: string
+          description: Auto-generated MongoDB ID
+        username:
+          type: string
+          description: Unique username for the user
+        email:
+          type: string
+          format: email
+          description: User's email address
+        phone_number:
+          type: string
+          description: User's phone number
+        role:
+          type: string
+          enum: [ USER, ADMIN ]
+          description: User role for authorization
+        avatar:
+          type: object
+          properties:
+            url:
+              type: string
+              description: URL of the user's avatar image
+            public_id:
+              type: string
+              description: Public ID for the avatar in Cloudinary
+        isEmailVerified:
+          type: boolean
+          description: Indicates if the user's email is verified
+        isAuthenticated:
+          type: boolean
+          description: Indicates if the user is currently authenticated
+      example:
+        username: john_doe
+        email: john@example.com
+        phone_number: "1234567890"
+        role: USER
+        avatar:
+          url: https://res.cloudinary.com/example/image/upload/v1234567890/avatar.jpg
+          public_id: ecommerce/users-image/avatar
+        isEmailVerified: true
+        isAuthenticated: true
+
+    ApiResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: HTTP status code
+        message:
+          type: string
+          description: Response message
+        data:
+          type: object
+          description: Response data
+
+    LoginResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            tokens:
+              type: object
+              properties:
+                access_token:
+                  type: string
+                refresh_token:
+                  type: string
+
+    VerificationResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            isEmailVerified:
+              type: boolean
+
+    Error:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: string
+
+paths:
+  /users/register:
+    post:
+      summary: Register a new user
+      tags: [ Authentication ]
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - username
+              - email
+              - phone_number
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone_number:
+                  type: string
+                role:
+                  type: string
+                  enum: [ USER, ADMIN ]
+            example:
+              username: '@codesuite2004'
+              email: codesuite2004@gmail.com
+              phone_number: 7086807968
+              role: ADMIN
+
+      responses:
+        200:
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+        409:
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/register/set-password:
+    post:
+      summary: Create a password for a registered user
+      tags: [ Authentication ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - email
+              - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+
+      responses:
+        200:
+          description: Password created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/login:
+    post:
+      summary: Login user
+      tags: [ Authentication ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - email
+              - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+        400:
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        401:
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/logout:
+    post:
+      summary: Logout user
+      tags: [ Authentication ]
+      security:
+      - BearerAuth: [ 'bearerAuth' ]
+      - CookieAuth: []
+      responses:
+        200:
+          description: Logout successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/reset-password:
+    post:
+      summary: Reset a forgotten password
+      tags: [ Authentication ]
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - password
+              - token
+              properties:
+                password:
+                  type: string
+                  format: password
+                token:
+                  type: string
+
+      responses:
+        200:
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+        400:
+          description: Missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        401:
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/assign-role/{userId}:
+    patch:
+      summary: Assign a role to a user
+      tags: [ Authentication ]
+      security:
+      - BearerAuth: []
+      parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: string
+        description: The user ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - role
+              properties:
+                role:
+                  type: string
+                  enum: [ USER, ADMIN ]
+
+      responses:
+        200:
+          description: Role assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

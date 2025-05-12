@@ -7,8 +7,10 @@ const mongoose = require("mongoose");
 const { Server } = require("socket.io");
 const http = require("http");
 const swaggerUi = require("swagger-ui-express");
-const { specs } = require("./swagger-docs-config/swagger");
 const routers = require("./routes/index.routes");
+const yaml = require("yaml");
+const fs = require("fs");
+const path = require("path");
 
 const dataBaseConnection = require("./connection/connection");
 const notFound = require("./middlewares/notFound");
@@ -49,12 +51,17 @@ app.use((req, res, next) => {
   next();
 });
 
+const file = fs.readFileSync(path.resolve(__dirname, "./swagger.yaml"), "utf8");
+const specs = yaml.parse(file);
+
 // Serve Swagger UI
 app.use(
   "/api/v1/api-docs",
   swaggerUi.serve,
   swaggerUi.setup(specs, {
     explorer: true,
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "E-commerce API Documentation",
     swaggerOptions: {
       docExpansion: "none", // keep all the sections collapsed by default
     },

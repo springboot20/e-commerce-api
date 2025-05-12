@@ -53,9 +53,8 @@ const userSchema = new Schema(
     emailVerificationToken: { type: String },
     emailVerificationTokenExpiry: { type: Date },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
-
 
 userSchema.methods.matchPasswords = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
@@ -102,7 +101,7 @@ userSchema.post("save", async function (user, next) {
     await CartModel.findOneAndUpdate(
       { owner: user._id }, // Search criteria
       { $setOnInsert: { items: [] } }, // Fields to set if no cart exists
-      { upsert: true, new: true }, // Options: create if not found
+      { upsert: true, new: true } // Options: create if not found
     );
     next(); // Proceed to the next middleware
   } catch (error) {
