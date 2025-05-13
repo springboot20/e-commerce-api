@@ -368,17 +368,6 @@ const getOrderById = asyncHandler(async (req, res) => {
       },
     },
     {
-      $addFields: {
-        items: {
-          $reduce: {
-            input: "$items",
-            initialValue: [],
-            in: { $concatArrays: ["$$value", "$$this"] },
-          },
-        },
-      },
-    },
-    {
       $unwind: {
         path: "$items",
         preserveNullAndEmptyArrays: true,
