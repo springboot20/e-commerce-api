@@ -38,7 +38,8 @@
     "passport": "^0.7.0",
     "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.8.0"
   },
   "devDependencies": {
     "cryptojs": "^2.5.3",
