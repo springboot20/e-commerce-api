@@ -1,8 +1,8 @@
-const model = require("../../../../models/index");
-const { StatusCodes } = require("http-status-codes");
-const { asyncHandler } = require("../../../../utils/asyncHandler");
-const { ApiResponse } = require("../../../../utils/api.response");
-const { getMognogoosePagination } = require("../../../../helpers");
+const model = require('../../../../models/index');
+const { StatusCodes } = require('http-status-codes');
+const { asyncHandler } = require('../../../../utils/asyncHandler');
+const { ApiResponse } = require('../../../../utils/api.response');
+const { getMongoosePagination } = require('../../../../helpers');
 
 const getAllAddresses = asyncHandler(async (req, res) => {
   const { limit = 15, page = 1 } = req.query;
@@ -15,19 +15,19 @@ const getAllAddresses = asyncHandler(async (req, res) => {
 
   const paginateAddresses = await model.AddressModel.aggregatePaginate(
     addressesAggregate,
-    getMognogoosePagination({
+    getMongoosePagination({
       limit,
       page,
       customLabels: {
-        totalDocs: "totalAddress",
-        docs: "addresses",
+        totalDocs: 'totalAddress',
+        docs: 'addresses',
       },
-    }),
+    })
   );
 
-  return new ApiResponse(StatusCodes.OK, "users addresses fetched successfully", {
+  return new ApiResponse(StatusCodes.OK, 'users addresses fetched successfully', {
     addresses: paginateAddresses,
   });
 });
 
-module.exports = getAllAddresses
+module.exports = getAllAddresses;

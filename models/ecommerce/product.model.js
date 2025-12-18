@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const { Schema, model } = mongoose;
-const mongooseAggregatePaginate = require("mongoose-aggregate-paginate-v2");
+const mongooseAggregatePaginate = require('mongoose-aggregate-paginate-v2');
 
 const sizeSchema = new Schema({
   name: { type: String, required: true },
@@ -11,7 +11,7 @@ const ProductSchema = new Schema(
   {
     user: {
       type: mongoose.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     name: {
@@ -34,9 +34,10 @@ const ProductSchema = new Schema(
     imageSrc: {
       type: {
         url: String,
+        localPath: String,
         public_id: String,
       },
-      default: { url: null, public_id: null }, // Ensure the default is an object
+      default: { url: null, localPath: null, public_id: null }, // Ensure the default is an object
     },
     subImgs: {
       type: [
@@ -49,7 +50,7 @@ const ProductSchema = new Schema(
     },
     category: {
       type: Schema.Types.ObjectId,
-      ref: "Category",
+      ref: 'Category',
     },
     stock: {
       type: Number,
@@ -86,6 +87,6 @@ const ProductSchema = new Schema(
 
 ProductSchema.plugin(mongooseAggregatePaginate);
 
-const ProductModel = model("Product", ProductSchema);
+const ProductModel = model('Product', ProductSchema);
 
 module.exports = ProductModel;

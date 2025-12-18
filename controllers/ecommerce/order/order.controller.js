@@ -3,16 +3,16 @@ const {
   OrderStatuses,
   paystackStatus,
   AvailableOrderStatusEnums,
-} = require("../../../constants.js");
-const { ApiError } = require("../../../utils/api.error");
-const { StatusCodes } = require("http-status-codes");
-const { asyncHandler } = require("../../../utils/asyncHandler");
-const { CartModel, OrderModel, ProductModel, UserModel } = require("../../../models");
-const { getCart } = require("../cart/cart.controller");
-const { ApiResponse } = require("../../../utils/api.response.js");
-const axios = require("axios");
-const { removeCircularReferences, getMognogoosePagination } = require("../../../helpers.js");
-const { default: mongoose } = require("mongoose");
+} = require('../../../constants.js');
+const { ApiError } = require('../../../utils/api.error');
+const { StatusCodes } = require('http-status-codes');
+const { asyncHandler } = require('../../../utils/asyncHandler');
+const { CartModel, OrderModel, ProductModel, UserModel } = require('../../../models');
+const { getCart } = require('../cart/cart.controller');
+const { ApiResponse } = require('../../../utils/api.response.js');
+const axios = require('axios');
+const { removeCircularReferences, getMongoosePagination } = require('../../../helpers.js');
+const { default: mongoose } = require('mongoose');
 
 async function initializePaystackPayment({ email, amount }) {
   try {
@@ -24,10 +24,10 @@ async function initializePaystackPayment({ email, amount }) {
 
     const payload = JSON.stringify(orderConfig);
 
-    const response = await axios.post("https://api.paystack.co/transaction/initialize", payload, {
+    const response = await axios.post('https://api.paystack.co/transaction/initialize', payload, {
       headers: {
         Authorization: `Bearer ${process.env.PAYSTACK_SECRET}`,
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
@@ -39,7 +39,7 @@ async function initializePaystackPayment({ email, amount }) {
   } catch (error) {
     throw new ApiError(
       StatusCodes.INTERNAL_SERVER_ERROR,
-      "Error while generating paystack authorization url",
+      'Error while generating paystack authorization url',
       []
     );
   }
@@ -50,7 +50,7 @@ async function verifyPaystackPaymentHelper(reference) {
     let response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: {
         Authorization: `Bearer ${process.env.PAYSTACK_SECRET}`,
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
@@ -59,7 +59,7 @@ async function verifyPaystackPaymentHelper(reference) {
 
     return data;
   } catch (error) {
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "something went wrong");
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'something went wrong');
   }
 }
 
@@ -68,7 +68,7 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
   const user = await UserModel.findById(req.user._id);
 
   if (!cart || !cart.items?.length) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "cart is empty", []);
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'cart is empty', []);
   }
 
   const cartItems = cart.items;
@@ -94,7 +94,7 @@ const generatePaystackOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  if (!order) throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "error while placing order");
+  if (!order) throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'error while placing order');
 
   const responseData = removeCircularReferences(
     new ApiResponse(StatusCodes.CREATED, response?.message, {
@@ -111,11 +111,11 @@ const orderFulfillmentHelper = asyncHandler(async (req, res) => {
   const order = await OrderModel.findOne({ paymentId: reference });
 
   if (!order) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "no order found");
+    throw new ApiError(StatusCodes.NOT_FOUND, 'no order found');
   }
 
   if (order.orderStatus === OrderStatuses.COMPLETED) {
-    throw new ApiResponse(StatusCodes.CONFLICT, "order has already been verified", { order });
+    throw new ApiResponse(StatusCodes.CONFLICT, 'order has already been verified', { order });
   }
 
   const orderReference = order.paymentId;
@@ -151,7 +151,7 @@ const orderFulfillmentHelper = asyncHandler(async (req, res) => {
   await order.save({ validateBeforeSave: false });
 
   const responseData = removeCircularReferences(
-    new ApiResponse(StatusCodes.OK, "order created successfully", {
+    new ApiResponse(StatusCodes.OK, 'order created successfully', {
       cart: userCart,
       order,
     })
@@ -166,10 +166,10 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 
   let order = await OrderModel.findById(orderId);
 
-  if (!order) throw new ApiError(StatusCodes.NOT_FOUND, "order not exist", []);
+  if (!order) throw new ApiError(StatusCodes.NOT_FOUND, 'order not exist', []);
 
   if (order.status === OrderStatuses.COMPLETED) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Order already delivered");
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Order already delivered');
   }
 
   order = await OrderModel.findByIdAndUpdate(
@@ -182,7 +182,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     { new: true }
   );
 
-  return new ApiResponse(StatusCodes.OK, "order status changed successfully", { status });
+  return new ApiResponse(StatusCodes.OK, 'order status changed successfully', { status });
 });
 
 const getAllOrders = asyncHandler(async (req, res) => {
@@ -201,10 +201,10 @@ const getAllOrders = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        from: "users",
-        localField: "customer",
-        foreignField: "_id",
-        as: "customer",
+        from: 'users',
+        localField: 'customer',
+        foreignField: '_id',
+        as: 'customer',
         pipeline: [
           {
             $project: {
@@ -218,17 +218,17 @@ const getAllOrders = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        localField: "address",
-        foreignField: "_id",
-        from: "addresses",
-        as: "address",
+        localField: 'address',
+        foreignField: '_id',
+        from: 'addresses',
+        as: 'address',
       },
     },
     {
       $addFields: {
-        address: { $first: "$address" },
-        customer: { $first: "$customer" },
-        totalItems: { $size: "$items" },
+        address: { $first: '$address' },
+        customer: { $first: '$customer' },
+        totalItems: { $size: '$items' },
       },
     },
     {
@@ -240,17 +240,17 @@ const getAllOrders = asyncHandler(async (req, res) => {
 
   const paginatedOrders = await OrderModel.aggregatePaginate(
     orderAggregate,
-    getMognogoosePagination({
+    getMongoosePagination({
       limit,
       page,
       customLabels: {
-        totalDocs: "total_orders",
-        docs: "orders",
+        totalDocs: 'total_orders',
+        docs: 'orders',
       },
     })
   );
 
-  return new ApiResponse(StatusCodes.OK, " orders fetched successfully", paginatedOrders);
+  return new ApiResponse(StatusCodes.OK, ' orders fetched successfully', paginatedOrders);
 });
 
 const getUserOrders = asyncHandler(async (req, res) => {
@@ -275,10 +275,10 @@ const getUserOrders = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        from: "users",
-        localField: "customer",
-        foreignField: "_id",
-        as: "customer",
+        from: 'users',
+        localField: 'customer',
+        foreignField: '_id',
+        as: 'customer',
         pipeline: [
           {
             $project: {
@@ -292,17 +292,17 @@ const getUserOrders = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        localField: "address",
-        foreignField: "_id",
-        from: "addresses",
-        as: "address",
+        localField: 'address',
+        foreignField: '_id',
+        from: 'addresses',
+        as: 'address',
       },
     },
     {
       $addFields: {
-        address: { $first: "$address" },
-        customer: { $first: "$customer" },
-        totalItems: { $size: "$items" },
+        address: { $first: '$address' },
+        customer: { $first: '$customer' },
+        totalItems: { $size: '$items' },
       },
     },
     {
@@ -314,17 +314,17 @@ const getUserOrders = asyncHandler(async (req, res) => {
 
   const paginatedOrders = await OrderModel.aggregatePaginate(
     orderAggregate,
-    getMognogoosePagination({
+    getMongoosePagination({
       limit,
       page,
       customLabels: {
-        totalDocs: "total_orders",
-        docs: "orders",
+        totalDocs: 'total_orders',
+        docs: 'orders',
       },
     })
   );
 
-  return new ApiResponse(StatusCodes.OK, " orders fetched successfully", paginatedOrders);
+  return new ApiResponse(StatusCodes.OK, ' orders fetched successfully', paginatedOrders);
 });
 
 const getOrderById = asyncHandler(async (req, res) => {
@@ -338,10 +338,10 @@ const getOrderById = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        from: "users",
-        localField: "customer",
-        foreignField: "_id",
-        as: "customer",
+        from: 'users',
+        localField: 'customer',
+        foreignField: '_id',
+        as: 'customer',
         pipeline: [
           {
             $project: {
@@ -355,75 +355,75 @@ const getOrderById = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        localField: "address",
-        foreignField: "_id",
-        from: "addresses",
-        as: "address",
+        localField: 'address',
+        foreignField: '_id',
+        from: 'addresses',
+        as: 'address',
       },
     },
     {
       $addFields: {
-        address: { $first: "$address" },
-        customer: { $first: "$customer" },
+        address: { $first: '$address' },
+        customer: { $first: '$customer' },
       },
     },
     {
       $unwind: {
-        path: "$items",
+        path: '$items',
         preserveNullAndEmptyArrays: true,
       },
     },
     {
       $lookup: {
-        from: "products",
-        localField: "items.productId",
-        foreignField: "_id",
-        as: "items.product",
+        from: 'products',
+        localField: 'items.productId',
+        foreignField: '_id',
+        as: 'items.product',
       },
     },
     {
       $addFields: {
-        "items.product": {
-          $first: "$items.product",
+        'items.product': {
+          $first: '$items.product',
         },
       },
     },
     {
       $group: {
-        _id: "$_id",
-        order: { $first: "$$ROOT" },
+        _id: '$_id',
+        order: { $first: '$$ROOT' },
         orderItems: {
           $push: {
-            _id: "$items._id",
-            quantity: "$items.quantity",
-            product: "$items.product",
+            _id: '$items._id',
+            quantity: '$items.quantity',
+            product: '$items.product',
           },
         },
         totalOrder: {
           $sum: {
-            $multiply: ["$items.product.price", "$items.quantity"],
+            $multiply: ['$items.product.price', '$items.quantity'],
           },
         },
       },
     },
     {
       $addFields: {
-        "order.items": "$orderItems",
+        'order.items': '$orderItems',
       },
     },
     {
       $project: {
         orderItems: 0,
-        "order.productDetails": 0,
+        'order.productDetails': 0,
       },
     },
   ]);
 
   if (!order) {
-    return ApiError(StatusCodes.NOT_FOUND, "Order not found", []);
+    return ApiError(StatusCodes.NOT_FOUND, 'Order not found', []);
   }
 
-  return new ApiResponse(StatusCodes.OK, "order fetched successfully", order[0]);
+  return new ApiResponse(StatusCodes.OK, 'order fetched successfully', order[0]);
 });
 
 module.exports = {
