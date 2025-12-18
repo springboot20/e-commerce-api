@@ -13,7 +13,7 @@
  * @swagger
  * components:
  *   schemas:
- *     User:
+ *     User:w
  *       type: object
  *       required:
  *         - username

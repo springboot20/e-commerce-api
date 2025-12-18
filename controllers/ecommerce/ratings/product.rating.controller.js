@@ -1,15 +1,15 @@
-const model = require("../../../models/index");
-const { StatusCodes } = require("http-status-codes");
-const { asyncHandler } = require("../../../utils/asyncHandler");
-const { ApiError } = require("../../../utils/api.error");
-const { ApiResponse } = require("../../../utils/api.response");
-const { getMognogoosePagination } = require("../../../helpers");
-const { emitSocketEventToUser } = require("../../../socket/socket.config");
+const model = require('../../../models/index');
+const { StatusCodes } = require('http-status-codes');
+const { asyncHandler } = require('../../../utils/asyncHandler');
+const { ApiError } = require('../../../utils/api.error');
+const { ApiResponse } = require('../../../utils/api.response');
+const { getMongoosePagination } = require('../../../helpers');
+const { emitSocketEventToUser } = require('../../../socket/socket.config');
 const {
   PRODUCT_RATING_WITHOUT_COMMENT,
   PRODUCT_RATING_WITH_COMMENT,
-} = require("../../../enums/socket-events");
-const { default: mongoose } = require("mongoose");
+} = require('../../../enums/socket-events');
+const { default: mongoose } = require('mongoose');
 
 /**
  * Helper function to update product's rating statistics
@@ -21,10 +21,10 @@ const updateProductRatingStats = async (productId) => {
     {
       $group: {
         _id: null,
-        averageRating: { $avg: "$rate" },
+        averageRating: { $avg: '$rate' },
         totalRatings: { $sum: 1 },
         ratingCounts: {
-          $push: "$rate",
+          $push: '$rate',
         },
       },
     },
@@ -70,7 +70,7 @@ const rateProductWithComment = asyncHandler(async (req) => {
   const { productId, rating, comment } = req.body;
 
   if (!rating || rating < 0 || rating > 5) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Rating must be between 0 and 5");
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Rating must be between 0 and 5');
   }
 
   const product = await model.ProductModel.findById(new mongoose.Types.ObjectId(productId));
@@ -124,7 +124,7 @@ const rateProductWithComment = asyncHandler(async (req) => {
 
   return new ApiResponse(
     StatusCodes.OK,
-    existingRating ? "Rating updated successfully" : "Product rated successfully",
+    existingRating ? 'Rating updated successfully' : 'Product rated successfully',
     ratingResult
   );
 });
@@ -133,7 +133,7 @@ const rateProductWithoutComment = asyncHandler(async (req, res) => {
   const { productId, rating } = req.body;
 
   if (!rating || rating < 0 || rating > 5) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Rating must be between 0 and 5");
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Rating must be between 0 and 5');
   }
 
   const product = await model.ProductModel.findById(new mongoose.Types.ObjectId(productId));
@@ -188,8 +188,8 @@ const rateProductWithoutComment = asyncHandler(async (req, res) => {
   try {
     const hasPurchased = await model.OrderModel.exists({
       userId,
-      "items.productId": product._id,
-      status: "COMPLETED", // Or whatever status indicates a completed order
+      'items.productId': product._id,
+      status: 'COMPLETED', // Or whatever status indicates a completed order
     });
 
     if (hasPurchased) {
@@ -198,7 +198,7 @@ const rateProductWithoutComment = asyncHandler(async (req, res) => {
     }
   } catch (error) {
     // Just log the error but don't stop the process
-    console.error("Error checking purchase status:", error);
+    console.error('Error checking purchase status:', error);
   }
 
   // Update product's overall rating statistics
@@ -206,7 +206,7 @@ const rateProductWithoutComment = asyncHandler(async (req, res) => {
 
   return new ApiResponse(
     StatusCodes.OK,
-    existingRating ? "Rating updated successfully" : "Product rated successfully",
+    existingRating ? 'Rating updated successfully' : 'Product rated successfully',
     ratingResult
   );
 });
@@ -216,7 +216,7 @@ const rateProductWithoutComment = asyncHandler(async (req, res) => {
  */
 const getProductRatings = asyncHandler(async (req, res) => {
   const { productId } = req.params;
-  const { page = 1, limit = 10, sort = "newest", verified = "all" } = req.query;
+  const { page = 1, limit = 10, sort = 'newest', verified = 'all' } = req.query;
 
   const product = await model.ProductModel.findById(new mongoose.Types.ObjectId(productId));
 
@@ -228,14 +228,14 @@ const getProductRatings = asyncHandler(async (req, res) => {
   const query = { productId: product._id };
 
   // Filter for verified purchases if specified
-  if (verified === "verified") {
+  if (verified === 'verified') {
     query.isVerifiedPurchase = true;
-  } else if (verified === "unverified") {
+  } else if (verified === 'unverified') {
     query.isVerifiedPurchase = false;
   }
 
   // Calculate pagination
-  const paginationOptions = getMognogoosePagination({
+  const paginationOptions = getMongoosePagination({
     page,
     limit,
   });
@@ -243,16 +243,16 @@ const getProductRatings = asyncHandler(async (req, res) => {
   // Determine sort options
   let sortOptions = {};
   switch (sort) {
-    case "highest":
+    case 'highest':
       sortOptions = { rate: -1 };
       break;
-    case "lowest":
+    case 'lowest':
       sortOptions = { rate: 1 };
       break;
-    case "oldest":
+    case 'oldest':
       sortOptions = { createdAt: 1 };
       break;
-    case "newest":
+    case 'newest':
     default:
       sortOptions = { createdAt: -1 };
   }
@@ -260,7 +260,7 @@ const getProductRatings = asyncHandler(async (req, res) => {
   // Fetch ratings with pagination
   const ratings = await model.RatingModel.find(query)
     .sort(sortOptions)
-    .populate("userId", "name avatar") // Add fields you want from the user
+    .populate('userId', 'name avatar') // Add fields you want from the user
     .skip(paginationOptions.skip)
     .limit(paginationOptions.limit);
 
@@ -274,7 +274,7 @@ const getProductRatings = asyncHandler(async (req, res) => {
     distribution: product.ratingCounts || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
   };
 
-  return new ApiResponse(StatusCodes.OK, "Product ratings retrieved", {
+  return new ApiResponse(StatusCodes.OK, 'Product ratings retrieved', {
     ratings,
     summary: ratingSummary,
     pagination: {
@@ -296,11 +296,11 @@ const deleteRating = asyncHandler(async (req, res) => {
   const rating = await model.RatingModel.findById(ratingId);
 
   if (!rating) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "Rating not found");
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Rating not found');
   }
 
   // Check if user owns this rating or is an admin
-  if (rating.userId.toString() !== userId.toString() && req.user.role !== "admin") {
+  if (rating.userId.toString() !== userId.toString() && req.user.role !== 'admin') {
     throw new ApiError(StatusCodes.FORBIDDEN, "You don't have permission to delete this rating");
   }
 
@@ -309,7 +309,7 @@ const deleteRating = asyncHandler(async (req, res) => {
   // Update product's rating statistics
   await updateProductRatingStats(rating.productId);
 
-  return new ApiResponse(StatusCodes.OK, "Rating deleted successfully", null);
+  return new ApiResponse(StatusCodes.OK, 'Rating deleted successfully', null);
 });
 
 module.exports = {

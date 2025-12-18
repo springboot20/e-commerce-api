@@ -1,13 +1,13 @@
-const model = require("../../models/index");
-const { asyncHandler } = require("../../utils/asyncHandler");
-const { StatusCodes } = require("http-status-codes");
-const { ApiError } = require("../../utils/api.error");
-const { ApiResponse } = require("../../utils/api.response");
-const { getMognogoosePagination } = require("../../helpers");
+const model = require('../../models/index');
+const { asyncHandler } = require('../../utils/asyncHandler');
+const { StatusCodes } = require('http-status-codes');
+const { ApiError } = require('../../utils/api.error');
+const { ApiResponse } = require('../../utils/api.response');
+const { getMongoosePagination } = require('../../helpers');
 const {
   uploadFileToCloudinary,
   deleteFileFromCloudinary,
-} = require("../../configs/cloudinary.config");
+} = require('../../configs/cloudinary.config');
 
 const getUsers = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
@@ -20,17 +20,17 @@ const getUsers = asyncHandler(async (req, res) => {
 
   const paginatedUsers = await model.UserModel.aggregatePaginate(
     userAggregate,
-    getMognogoosePagination({
+    getMongoosePagination({
       limit,
       page,
       customLabels: {
-        totalDocs: "total_users",
-        docs: "users",
+        totalDocs: 'total_users',
+        docs: 'users',
       },
-    }),
+    })
   );
 
-  return new ApiResponse(StatusCodes.OK, "users fetched successfully", paginatedUsers);
+  return new ApiResponse(StatusCodes.OK, 'users fetched successfully', paginatedUsers);
 });
 
 const getVerifiedUsers = asyncHandler(async (req, res) => {
@@ -54,20 +54,20 @@ const getVerifiedUsers = asyncHandler(async (req, res) => {
 
   const paginatedVerifiedUsers = await model.UserModel.aggregatePaginate(
     verifiedUsersAggregate,
-    getMognogoosePagination({
+    getMongoosePagination({
       limit,
       page,
       customLabels: {
-        totalDocs: "total_verified_users",
-        docs: "verified_users",
+        totalDocs: 'total_verified_users',
+        docs: 'verified_users',
       },
-    }),
+    })
   );
 
   return new ApiResponse(
     StatusCodes.OK,
-    "verified user fetched succefully",
-    paginatedVerifiedUsers,
+    'verified user fetched succefully',
+    paginatedVerifiedUsers
   );
 });
 
@@ -75,10 +75,10 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   const user = await model.UserModel.findById(req?.user?._id);
 
   if (!user) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "Unable to find user");
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Unable to find user');
   }
 
-  return new ApiResponse(StatusCodes.OK, "current user fetched", {
+  return new ApiResponse(StatusCodes.OK, 'current user fetched', {
     user,
   });
 });
@@ -86,10 +86,10 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 const updateUserAvatar = asyncHandler(async (req, res) => {
   const user = await model.UserModel.findById(req?.user?._id);
 
-  if (!user) throw new ApiError(StatusCodes.NOT_FOUND, "user not found", []);
+  if (!user) throw new ApiError(StatusCodes.NOT_FOUND, 'user not found', []);
 
   if (!req.file) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "user avatar image is required");
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'user avatar image is required');
   }
 
   let uploadImage;
@@ -100,7 +100,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     }
     uploadImage = await uploadFileToCloudinary(
       req.file.buffer,
-      `${process.env.CLOUDINARY_BASE_FOLDER}/users-image`,
+      `${process.env.CLOUDINARY_BASE_FOLDER}/users-image`
     );
   }
 
@@ -114,9 +114,9 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         },
       },
     },
-    { new: true },
+    { new: true }
   );
-  return new ApiResponse(StatusCodes.OK, "users fetched successfully", { user: userAvatarUpdate });
+  return new ApiResponse(StatusCodes.OK, 'users fetched successfully', { user: userAvatarUpdate });
 });
 
 const updateUser = asyncHandler(async (req, res) => {
@@ -125,7 +125,7 @@ const updateUser = asyncHandler(async (req, res) => {
   const user = await model.UserModel.findById(req.user?._id);
 
   if (!user) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "Unable to find user");
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Unable to find user');
   }
 
   const updatedUser = await model.UserModel.findByIdAndUpdate(
@@ -137,12 +137,12 @@ const updateUser = asyncHandler(async (req, res) => {
         password,
       },
     },
-    { new: true },
+    { new: true }
   );
 
   await updatedUser.save({ validateBeforeSave: false });
 
-  return new ApiResponse(StatusCodes.OK, "User updated successfully", { user: updatedUser });
+  return new ApiResponse(StatusCodes.OK, 'User updated successfully', { user: updatedUser });
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
@@ -150,12 +150,12 @@ const deleteUser = asyncHandler(async (req, res) => {
 
   const user = await model.UserModel.findById(userId);
 
-  if (!user) throw new ApiError(StatusCodes.NOT_FOUND, "user not found", []);
+  if (!user) throw new ApiError(StatusCodes.NOT_FOUND, 'user not found', []);
 
   if (user?.avatar?.public_id !== null) await deleteFileFromCloudinary(user?.avatar?.public_id);
   await model.UserModel.findByIdAndDelete(userId);
 
-  return new ApiResponse(StatusCodes.OK, "user deleted successfully", {});
+  return new ApiResponse(StatusCodes.OK, 'user deleted successfully', {});
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
@@ -167,7 +167,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   const isPasswordValid = await user.matchPasswords(oldPassword);
 
   if (!isPasswordValid) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid old password");
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid old password');
   }
 
   // assign new password in plain text
@@ -175,7 +175,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   user.password = newPassword;
   await user.save({ validateBeforeSave: false });
 
-  return new ApiResponse(StatusCodes.OK, "Password changed successfully", {});
+  return new ApiResponse(StatusCodes.OK, 'Password changed successfully', {});
 });
 
 module.exports = {

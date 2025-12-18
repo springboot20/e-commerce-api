@@ -1,21 +1,28 @@
-const model = require("../../../models/index");
-const { StatusCodes } = require("http-status-codes");
-const { asyncHandler } = require("../../../utils/asyncHandler");
-const { ApiError } = require("../../../utils/api.error");
-const { ApiResponse } = require("../../../utils/api.response");
-const { getMognogoosePagination } = require("../../../helpers");
-const { emitSocketEventToUser, emitSocketEventToAdmin } = require("../../../socket/socket.config");
+const model = require('../../../models/index');
+const { StatusCodes } = require('http-status-codes');
+const { asyncHandler } = require('../../../utils/asyncHandler');
+const { ApiError } = require('../../../utils/api.error');
+const { ApiResponse } = require('../../../utils/api.response');
+const {
+  getMongoosePagination,
+  getStaticFilePath,
+  getLocalPath,
+  removeLocalFile,
+} = require('../../../helpers');
+const { emitSocketEventToUser, emitSocketEventToAdmin } = require('../../../socket/socket.config');
 const {
   NEW_PRODUCT_ADDED,
   PRODUCT_DELETED,
   UPDATED_PRODUCT,
-} = require("../../../enums/socket-events");
+} = require('../../../enums/socket-events');
 
-const { default: mongoose } = require("mongoose");
+const { default: mongoose } = require('mongoose');
 const {
   uploadFileToCloudinary,
   deleteFileFromCloudinary,
-} = require("../../../configs/cloudinary.config");
+} = require('../../../configs/cloudinary.config');
+
+const mode = process.env.NODE_ENV;
 
 const createNewProduct = asyncHandler(
   /**
@@ -39,22 +46,30 @@ const createNewProduct = asyncHandler(
     }
 
     if (!req.file) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, "no image upload", []);
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'no image upload', []);
     }
 
     let uploadImage;
 
     if (req.file) {
-      uploadImage = await uploadFileToCloudinary(
-        req.file.buffer,
-        `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`
-      );
-    }
-    const parsedSizes = typeof sizes === "string" ? JSON.parse(sizes) : sizes;
-    const parsedColors = typeof colors === "string" ? JSON.parse(colors) : colors;
+      if (mode === 'production') {
+        uploadImage = await uploadFileToCloudinary(
+          req.file.buffer,
+          `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`
+        );
+      } else {
+        const imageUrl = getStaticFilePath(req, req.file?.filename, 'products-upload');
+        const imageLocalPath = getLocalPath(req.file?.filename, 'products-upload');
 
-    console.log(parsedSizes);
-    console.log(colors);
+        uploadImage = { url: imageUrl, localPath: imageLocalPath };
+      }
+    }
+
+    // console.log(uploadImage);
+
+    const parsedSizes = typeof sizes === 'string' ? JSON.parse(sizes) : sizes;
+    const parsedColors = typeof colors === 'string' ? JSON.parse(colors) : colors;
+
     const user = req.user._id;
 
     const productData = {
@@ -65,8 +80,9 @@ const createNewProduct = asyncHandler(
       category: productCategory?._id,
       featured,
       imageSrc: {
-        url: uploadImage?.secure_url,
+        url: uploadImage?.secure_url || uploadImage?.url,
         public_id: uploadImage?.public_id,
+        localPath: uploadImage?.localPath,
       },
       stock,
       colors: Array.isArray(parsedColors) ? parsedColors : [], // Ensure colors is an array
@@ -78,18 +94,16 @@ const createNewProduct = asyncHandler(
         : [],
     };
 
-    console.log(productData);
-
     // Create the product in the database
     const createdProduct = await model.ProductModel.create(productData);
 
     emitSocketEventToUser(req, NEW_PRODUCT_ADDED, {
-      event_type: "product",
+      event_type: 'product',
       data: createdProduct,
-      message: "new product added to store",
+      message: 'new product added to store',
     });
 
-    return new ApiResponse(StatusCodes.CREATED, "product created successfully", {
+    return new ApiResponse(StatusCodes.CREATED, 'product created successfully', {
       product: createdProduct,
     });
   }
@@ -104,13 +118,13 @@ const getProduct = asyncHandler(
    */
   async (req, res) => {
     const { productId } = req.params;
-    const product = await model.ProductModel.findById(productId).populate("category");
+    const product = await model.ProductModel.findById(productId).populate('category');
 
     if (!product) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
+      throw new ApiError(StatusCodes.NOT_FOUND, 'product not found', []);
     }
 
-    return new ApiResponse(StatusCodes.OK, "product fetched successfully", { product });
+    return new ApiResponse(StatusCodes.OK, 'product fetched successfully', { product });
   }
 );
 
@@ -125,9 +139,9 @@ const getProductsByCategory = asyncHandler(
     const { categoryId } = req.params;
     const { page = 1, limit = 10 } = req.query;
 
-    const productCategory = await model.CategoryModel.findById(categoryId).select("name _id");
+    const productCategory = await model.CategoryModel.findById(categoryId).select('name _id');
 
-    if (!productCategory) throw new ApiError(StatusCodes.NOT_FOUND, "category not found");
+    if (!productCategory) throw new ApiError(StatusCodes.NOT_FOUND, 'category not found');
 
     const productAggregate = model.ProductModel.aggregate([
       {
@@ -139,12 +153,12 @@ const getProductsByCategory = asyncHandler(
 
     const paginatedProducts = await model.ProductModel.aggregatePaginate(
       productAggregate,
-      getMognogoosePagination({
+      getMongoosePagination({
         limit,
         page,
         customLabels: {
-          totalDocs: "totalProducts",
-          docs: "products",
+          totalDocs: 'totalProducts',
+          docs: 'products',
         },
       })
     );
@@ -153,7 +167,7 @@ const getProductsByCategory = asyncHandler(
 
     return new ApiResponse(
       StatusCodes.OK,
-      "products category fetched successfully",
+      'products category fetched successfully',
       paginatedProducts
     );
   }
@@ -173,7 +187,7 @@ const updateProduct = asyncHandler(
 
     // Find the product
     const product = await model.ProductModel.findById(productId);
-    if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
+    if (!product) throw new ApiError(StatusCodes.NOT_FOUND, 'product not found', []);
 
     let uploadImage;
 
@@ -190,20 +204,30 @@ const updateProduct = asyncHandler(
 
     // Handle image upload
     if (req.file) {
-      if (product.imageSrc?.public_id) {
-        await deleteFileFromCloudinary(product.imageSrc?.public_id);
+      if (mode === 'production') {
+        if (product.imageSrc?.public_id) {
+          await deleteFileFromCloudinary(product.imageSrc?.public_id);
+        } else {
+          removeLocalFile(product.imageSrc?.localPath);
+        }
+
+        uploadImage = await uploadFileToCloudinary(
+          req?.file?.buffer,
+          `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`
+        );
+      } else {
+        const imageUrl = getStaticFilePath(req, req.file?.filename, 'products-upload');
+        const imageLocalPath = getLocalPath(req.file?.filename, 'products-upload');
+
+        uploadImage = { url: imageUrl, localPath: imageLocalPath };
       }
-
-      uploadImage = await uploadFileToCloudinary(
-        req?.file?.buffer,
-        `${process.env.CLOUDINARY_BASE_FOLDER}/products-image`
-      );
-
-      updatedFields.imageSrc = {
-        url: uploadImage?.secure_url,
-        public_id: uploadImage?.public_id,
-      };
     }
+
+    updatedFields.imageSrc = {
+      url: uploadImage?.secure_url || uploadImage?.url,
+      public_id: uploadImage?.public_id,
+      localPath: uploadImage?.localPath ? uploadImage?.localPath : null,
+    };
 
     // Handle category update
     if (category) {
@@ -226,7 +250,7 @@ const updateProduct = asyncHandler(
     if (sizes) {
       try {
         // If sizes is a string, try to parse it as JSON
-        if (typeof sizes === "string") {
+        if (typeof sizes === 'string') {
           sizes = JSON.parse(sizes);
         }
 
@@ -234,10 +258,10 @@ const updateProduct = asyncHandler(
         if (Array.isArray(sizes)) {
           updatedFields.sizes = sizes;
         } else {
-          throw new ApiError(StatusCodes.BAD_REQUEST, "Sizes must be an array");
+          throw new ApiError(StatusCodes.BAD_REQUEST, 'Sizes must be an array');
         }
       } catch (error) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid sizes format: " + error.message);
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid sizes format: ' + error.message);
       }
     }
 
@@ -247,7 +271,7 @@ const updateProduct = asyncHandler(
         let parsedColors = colors;
 
         // If colors is a string, try to parse it as JSON
-        if (typeof colors === "string") {
+        if (typeof colors === 'string') {
           parsedColors = JSON.parse(colors);
         }
 
@@ -255,10 +279,10 @@ const updateProduct = asyncHandler(
         if (Array.isArray(parsedColors)) {
           updatedFields.colors = parsedColors;
         } else {
-          throw new ApiError(StatusCodes.BAD_REQUEST, "Colors must be an array");
+          throw new ApiError(StatusCodes.BAD_REQUEST, 'Colors must be an array');
         }
       } catch (error) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid colors format: " + error.message);
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid colors format: ' + error.message);
       }
     }
 
@@ -269,16 +293,16 @@ const updateProduct = asyncHandler(
         $set: updatedFields,
       },
       { new: true }
-    ).populate("category");
+    ).populate('category');
 
     emitSocketEventToUser(req, UPDATED_PRODUCT, {
-      event_type: "product",
+      event_type: 'product',
       data: updatedProduct,
-      message: "Product updated successfully",
+      message: 'Product updated successfully',
     });
 
     // Respond with the updated product
-    return new ApiResponse(StatusCodes.OK, "Product updated successfully", {
+    return new ApiResponse(StatusCodes.OK, 'Product updated successfully', {
       product: updatedProduct,
     });
   }
@@ -296,10 +320,12 @@ const deleteProduct = asyncHandler(
 
     const product = await model.ProductModel.findById(productId);
 
-    if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "product not found", []);
+    if (!product) throw new ApiError(StatusCodes.NOT_FOUND, 'product not found', []);
 
-    if (product?.imageSrc?.public_id !== null) {
+    if (product?.imageSrc?.public_id !== null && mode === 'production') {
       await deleteFileFromCloudinary(product?.imageSrc?.public_id);
+    } else {
+      removeLocalFile(product.imageSrc?.localPath);
     }
 
     const deletedProduct = await model.ProductModel.findOneAndDelete({ _id: productId });
@@ -307,18 +333,18 @@ const deleteProduct = asyncHandler(
     console.log(deletedProduct);
 
     emitSocketEventToAdmin(req, PRODUCT_DELETED, {
-      event_type: "product",
-      message: "product deleted successfully",
+      event_type: 'product',
+      message: 'product deleted successfully',
       data: deletedProduct,
     });
 
     emitSocketEventToUser(req, PRODUCT_DELETED, {
-      event_type: "product",
-      message: "product deleted successfully",
+      event_type: 'product',
+      message: 'product deleted successfully',
       data: deletedProduct,
     });
 
-    return new ApiResponse(StatusCodes.OK, "product deleted successfully", {});
+    return new ApiResponse(StatusCodes.OK, 'product deleted successfully', {});
   }
 );
 
@@ -348,7 +374,7 @@ const getAllProducts = asyncHandler(
           ? {
               name: {
                 $regex: name.trim(),
-                $options: "i",
+                $options: 'i',
               },
             }
           : {},
@@ -357,7 +383,7 @@ const getAllProducts = asyncHandler(
         $match: colors
           ? {
               colors: {
-                $in: typeof colors === "string" ? colors.split(",") : colors,
+                $in: typeof colors === 'string' ? colors.split(',') : colors,
               },
             }
           : {},
@@ -365,10 +391,10 @@ const getAllProducts = asyncHandler(
       {
         $match: sizes
           ? {
-              "sizes.name": {
+              'sizes.name': {
                 $in:
-                  typeof sizes === "string"
-                    ? sizes.split(",").map((size) => size.toUpperCase())
+                  typeof sizes === 'string'
+                    ? sizes.split(',').map((size) => size.toUpperCase())
                     : sizes.map((size) => size.toUpperCase()),
               },
             }
@@ -378,17 +404,17 @@ const getAllProducts = asyncHandler(
 
     const paginatedProducts = await model.ProductModel.aggregatePaginate(
       productsAggregate,
-      getMognogoosePagination({
+      getMongoosePagination({
         limit,
         page,
         customLabels: {
-          totalDocs: "totalProducts",
-          docs: "products",
+          totalDocs: 'totalProducts',
+          docs: 'products',
         },
       })
     );
 
-    return new ApiResponse(StatusCodes.OK, "products fetched successfully", paginatedProducts);
+    return new ApiResponse(StatusCodes.OK, 'products fetched successfully', paginatedProducts);
   }
 );
 
