@@ -37,11 +37,7 @@ const uploadLocalFiles = (uploadDirectory) => {
     fileDir = pathModule.resolve(__dirname, `${uploadDirectory}`);
   }
 
-  if (fileSystemModule.existsSync(fileDir)) {
-    fileSystemModule.rmdir(fileDir, (error) => {
-      if (error) console.log('', error);
-    });
-  } else {
+  if (!fileSystemModule.existsSync(fileDir)) {
     fileSystemModule.mkdirSync(fileDir, { recursive: true });
   }
 
@@ -57,8 +53,8 @@ const uploadLocalFiles = (uploadDirectory) => {
  */
 const getStaticFilePath = (req, fileName, directory) => {
   if (directory === undefined) {
-    return `${req.protocol}://${req.get('host')}/public/${fileName}`;
-  } else return `${req.protocol}://${req.get('host')}/public/${directory}/${fileName}`;
+    return `${req.protocol}://${req.get('host')}/${fileName}`;
+  } else return `${req.protocol}://${req.get('host')}/${directory}/${fileName}`;
 };
 
 /**

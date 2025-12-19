@@ -6,3 +6,6 @@
 
 # json 
 /tokens.json
+
+# public files
+/public/*

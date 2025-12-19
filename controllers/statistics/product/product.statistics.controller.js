@@ -13,16 +13,16 @@ const getProductsStatistics = asyncHandler(async (req, res) => {
     {
       $group: {
         _id: null,
-        avgragePrice: {
+        averagePrice: {
           $avg: "$price",
         },
       },
     },
   ]);
 
-  const statistics = { totalProducts, averagePrice: products[0].avgragePrice };
+  const statistics = { totalProducts, averagePrice: products[0].averagePrice };
 
-  console.log(statisics);
+  console.log(statistics);
 
   return new ApiResponse(StatusCodes.OK, "Product statistics fetched successfully", { statistics });
 });

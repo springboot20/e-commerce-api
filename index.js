@@ -37,19 +37,20 @@ app.use(
   })
 );
 
+const publicDir = path.join(__dirname, 'public');
+
+[publicDir].forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+    console.log(`Created directory: ${dir}`);
+  }
+});
+
 app.set('io', io);
 app.use(express.json({ limit: '16kb' }));
 app.use(express.urlencoded({ extended: true, limit: '16kb' }));
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser(process.env.JWT_SECRET));
-
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN);
-  res.setHeader('Access-Control-Allow-Methods', '*');
-  res.setHeader('Access-Control-Allow-Headers', process.env.CORS_ORIGIN);
-
-  next();
-});
 
 const file = fs.readFileSync(path.resolve(__dirname, './swagger.yaml'), 'utf8');
 const specs = yaml.parse(file);
